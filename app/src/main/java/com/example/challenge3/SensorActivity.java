@@ -70,16 +70,18 @@ public class SensorActivity extends FragmentActivity implements SensorEventListe
 
     @Override
     public final void onSensorChanged(SensorEvent event) {
-        float x;
-        float y;
-        float z;
-        double mag;
 
-        x = event.values[0]; //getting the accelerometer values
-        y = event.values[1];
-        z = event.values[2];
-        accel_mag.add(Math.sqrt(x * x + y * y + z * z) - 9.81); // calculating the magnitude of the acceleration
+        if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
 
+            // Getting the accelerometer values
+            float x = event.values[0];
+            float y = event.values[1];
+            float z = event.values[2];
+
+            // Calculating the magnitude of the acceleration
+            accel_mag.add(Math.sqrt(x * x + y * y + z * z) - 9.81);
+
+        }
     }
 
     @Override
