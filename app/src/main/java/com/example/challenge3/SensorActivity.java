@@ -5,35 +5,52 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.content.pm.PackageManager;
+import android.graphics.Paint;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.Bundle;
+import android.util.Log;
+import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
+import android.widget.ListAdapter;
+import android.widget.ListView;
 import android.widget.TextView;
 
 import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.FragmentActivity;
+
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import weka.classifiers.Classifier;
+import weka.core.Instances;
+import weka.core.converters.ArffSaver;
+import weka.core.converters.CSVLoader;
+import java.io.File;
+
 import weka.core.Attribute;
 import weka.core.Instances;
 
 
-public class SensorActivity extends FragmentActivity implements SensorEventListener {
+public class SensorActivity extends FragmentActivity implements SensorEventListener, View.OnClickListener {
 
     // sending log output TAG
     private static final String TAG = "MyActivity";
 
     // Front-End components
     TextView introText1, info_text;
-    ImageButton startButton, again;
+    ImageButton history_tab, again;
     LinearLayout linearLayout;
+    ListView history;
+
+    //History
+    String[] history_arrayl;
 
     // Accelerometer, Gyroscope, Linear_acceleration, Magnetometer
     private SensorManager sensorManager;
@@ -69,22 +86,6 @@ public class SensorActivity extends FragmentActivity implements SensorEventListe
         return new Instances(name, attTemp, capacity);
     }
 
-
-    @SuppressLint("NewAPI") // Android Studio doesn't know the backport of API
-    public String convertToCSV(String[] data){
-        return Stream.of(data)
-                .map(this::escapeSpecialCharacters)
-                .collect(Collectors.joining(","));
-    }
-
-    public String escapeSpecialCharacters(String data) {
-        String escapedData = data.replaceAll("\\R", " ");
-        if (data.contains(",") || data.contains("\"") || data.contains("'")) {
-            data = data.replace("\"", "\"\"");
-            escapedData = "\"" + data + "\"";
-        }
-        return escapedData;
-    }
     @Override
     public final void onCreate(Bundle savedInstanceState) {
 
@@ -93,10 +94,14 @@ public class SensorActivity extends FragmentActivity implements SensorEventListe
 
         // Initialize front-end
         introText1 = findViewById(R.id.introText1);
-        startButton = findViewById(R.id.startButton);
+        history_tab = findViewById(R.id.history_tab);
         again = findViewById(R.id.again);
         linearLayout = findViewById(R.id.layout);
         info_text = findViewById(R.id.info_text);
+
+        history =  findViewById(R.id.history);
+        history_tab.setOnClickListener(this);
+
 
         // Check the user has the right permissions enabled
         checkPermissions((Activity) this);
@@ -115,13 +120,22 @@ public class SensorActivity extends FragmentActivity implements SensorEventListe
         linear_acceleration = sensorManager.getDefaultSensor(Sensor.TYPE_LINEAR_ACCELERATION);
         magnetometer = sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
 
-        sensorManager.registerListener((SensorEventListener) SensorActivity.this, accelerometer, dt);
-        sensorManager.registerListener((SensorEventListener) SensorActivity.this, gyroscope, dt);
-        sensorManager.registerListener((SensorEventListener) SensorActivity.this, linear_acceleration, dt);
-        sensorManager.registerListener((SensorEventListener) SensorActivity.this, magnetometer, dt);
+        sensorManager.registerListener((SensorEventListener) SensorActivity.this, accelerometer, 200000);
+        sensorManager.registerListener((SensorEventListener) SensorActivity.this, gyroscope, 200000);
+        sensorManager.registerListener((SensorEventListener) SensorActivity.this, linear_acceleration, 200000);
+        sensorManager.registerListener((SensorEventListener) SensorActivity.this, magnetometer, 200000);
 
         liveData = createInstances("test", attrList, activities, 50);
+    }
 
+    @Override
+    public void onClick(View view) {
+
+        // When this button gets clicked, you will move into the history tab
+        if (view.equals(history_tab)){
+
+
+        }
     }
 
     @Override
@@ -160,6 +174,8 @@ public class SensorActivity extends FragmentActivity implements SensorEventListe
             float My = event.values[1];
             float Mz = event.values[2];
         }
+
+
 
     }
 

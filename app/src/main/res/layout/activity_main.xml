@@ -43,8 +43,16 @@
                 android:textSize="20sp"
                 android:textColor="#141414" />
 
+            <ListView
+                android:id="@+id/history"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:dividerHeight="1dp"
+                android:divider="#f00"
+                android:orientation="vertical"/>
+
             <ImageButton
-                android:id="@+id/startButton"
+                android:id="@+id/history_tab"
                 android:layout_width="175dp"
                 android:layout_height="175dp"
                 android:layout_gravity="center"
