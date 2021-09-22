@@ -21,7 +21,8 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import weka.classifiers.Classifier;
-
+import weka.core.Attribute;
+import weka.core.Instances;
 
 
 public class SensorActivity extends FragmentActivity implements SensorEventListener {
@@ -48,6 +49,26 @@ public class SensorActivity extends FragmentActivity implements SensorEventListe
     ArrayList<Double> accel_mag = new ArrayList<Double>();
 
     // Cvs file
+
+    private final String[] attrList = {"Wrist_Ax", "Wrist_Ay", "Wrist_Az", "Wrist_Lx", "Wrist_Ly", "Wrist_Lz", "Wrist_Gx", "Wrist_Gy", "Wrist_Gz", "Wrist_Mx", "Wrist_My", "Wrist_Mz", "Activity"};
+    private final String[] activities = {"walking", "standing", "jogging", "sitting","biking","upstairs","downstairs"};
+    Instances liveData = null;
+
+
+    private Instances createInstances(String name, String[] attList, String[] activityList, int capacity){
+        ArrayList<Attribute> attTemp = new ArrayList<Attribute>();
+        ArrayList<String> activityTemp = new ArrayList<String>();
+        for(int i=0; i<attList.length-1;i++){
+            attTemp.add(new Attribute(attList[i]));
+        }
+        for(int i=0; i < activityList.length; i++){
+            activityTemp.add(activityList[i]);
+        }
+        attTemp.add(new Attribute(attList[attList.length], activityTemp));
+
+        return new Instances(name, attTemp, capacity);
+    }
+
 
     @SuppressLint("NewAPI") // Android Studio doesn't know the backport of API
     public String convertToCSV(String[] data){
@@ -99,6 +120,7 @@ public class SensorActivity extends FragmentActivity implements SensorEventListe
         sensorManager.registerListener((SensorEventListener) SensorActivity.this, linear_acceleration, dt);
         sensorManager.registerListener((SensorEventListener) SensorActivity.this, magnetometer, dt);
 
+        liveData = createInstances("test", attrList, activities, 50);
 
     }
 
