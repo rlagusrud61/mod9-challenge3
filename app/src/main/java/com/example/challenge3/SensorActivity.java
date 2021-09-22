@@ -1,6 +1,7 @@
 package com.example.challenge3;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.content.pm.PackageManager;
@@ -16,6 +17,9 @@ import android.widget.TextView;
 import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.FragmentActivity;
 import java.util.ArrayList;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 import weka.classifiers.Classifier;
 
 
@@ -37,13 +41,29 @@ public class SensorActivity extends FragmentActivity implements SensorEventListe
     private Sensor linear_acceleration;
     private Sensor magnetometer;
 
+    // 20,000 microseconds = 50Hz
+    private final int dt = 20000;
+
     //List with magnitudes of acceleration
     ArrayList<Double> accel_mag = new ArrayList<Double>();
 
     // Cvs file
 
+    @SuppressLint("NewAPI") // Android Studio doesn't know the backport of API
+    public String convertToCSV(String[] data){
+        return Stream.of(data)
+                .map(this::escapeSpecialCharacters)
+                .collect(Collectors.joining(","));
+    }
 
-
+    public String escapeSpecialCharacters(String data) {
+        String escapedData = data.replaceAll("\\R", " ");
+        if (data.contains(",") || data.contains("\"") || data.contains("'")) {
+            data = data.replace("\"", "\"\"");
+            escapedData = "\"" + data + "\"";
+        }
+        return escapedData;
+    }
     @Override
     public final void onCreate(Bundle savedInstanceState) {
 
@@ -74,10 +94,10 @@ public class SensorActivity extends FragmentActivity implements SensorEventListe
         linear_acceleration = sensorManager.getDefaultSensor(Sensor.TYPE_LINEAR_ACCELERATION);
         magnetometer = sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
 
-        sensorManager.registerListener((SensorEventListener) SensorActivity.this, accelerometer, 200000);
-        sensorManager.registerListener((SensorEventListener) SensorActivity.this, gyroscope, 200000);
-        sensorManager.registerListener((SensorEventListener) SensorActivity.this, linear_acceleration, 200000);
-        sensorManager.registerListener((SensorEventListener) SensorActivity.this, magnetometer, 200000);
+        sensorManager.registerListener((SensorEventListener) SensorActivity.this, accelerometer, dt);
+        sensorManager.registerListener((SensorEventListener) SensorActivity.this, gyroscope, dt);
+        sensorManager.registerListener((SensorEventListener) SensorActivity.this, linear_acceleration, dt);
+        sensorManager.registerListener((SensorEventListener) SensorActivity.this, magnetometer, dt);
 
 
     }
@@ -118,8 +138,6 @@ public class SensorActivity extends FragmentActivity implements SensorEventListe
             float My = event.values[1];
             float Mz = event.values[2];
         }
-
-
 
     }
 
