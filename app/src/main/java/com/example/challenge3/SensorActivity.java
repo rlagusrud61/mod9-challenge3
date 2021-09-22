@@ -81,8 +81,19 @@ public class SensorActivity extends FragmentActivity implements SensorEventListe
             // Calculating the magnitude of the acceleration
             accel_mag.add(Math.sqrt(x * x + y * y + z * z) - 9.81);
 
+            double mag = averageAccelerometer(accel_mag);
         }
     }
+
+    // calculate average of an arraylist of any size
+    private float averageAccelerometer(ArrayList<Double> input) {
+        float temp = 0;
+        for (int i=0; i<input.size();i++) { // sum all elements
+            temp += input.get(i);
+        }
+        return temp/input.size(); // divide summed up elements by the number of elements
+    }
+
 
     @Override
     public void onAccuracyChanged(Sensor sensor, int i) {
