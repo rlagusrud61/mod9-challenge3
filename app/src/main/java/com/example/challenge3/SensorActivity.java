@@ -88,35 +88,35 @@ public class SensorActivity extends FragmentActivity implements SensorEventListe
         // Getting the accelerometer values
         if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
 
-            float acc_x = event.values[0];
-            float acc_y = event.values[1];
-            float acc_z = event.values[2];
+            float Ax = event.values[0];
+            float Ay = event.values[1];
+            float Az = event.values[2];
 
             // Calculating the magnitude of the acceleration
-            accel_mag.add(Math.sqrt(acc_x * acc_x + acc_y * acc_y + acc_z * acc_z) - 9.81);
+            accel_mag.add(Math.sqrt(Ax * Ax + Ay * Ay + Az * Az) - 9.81);
 
             double mag = averageAccelerometer(accel_mag);
         }
 
         // Getting the gyroscope values
         if (event.sensor.getType() == Sensor.TYPE_GYROSCOPE) {
-            float gyr_x = event.values[0];
-            float gyr_y = event.values[1];
-            float gyr_z = event.values[2];
+            float Gx = event.values[0];
+            float Gy = event.values[1];
+            float Gz = event.values[2];
         }
 
         // Getting the linear acceleration values
         if (event.sensor.getType() == Sensor.TYPE_LINEAR_ACCELERATION) {
-            float lacc_x = event.values[0];
-            float lacc_y = event.values[1];
-            float lacc_z = event.values[2];
+            float Lx = event.values[0];
+            float Ly = event.values[1];
+            float Lz = event.values[2];
         }
 
         // Getting the magnetometer values
         if (event.sensor.getType() == Sensor.TYPE_MAGNETIC_FIELD) {
-            float m_x = event.values[0];
-            float m_y = event.values[1];
-            float m_z = event.values[2];
+            float Mx = event.values[0];
+            float My = event.values[1];
+            float Mz = event.values[2];
         }
 
 
