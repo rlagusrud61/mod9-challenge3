@@ -66,24 +66,24 @@ public class SensorActivity extends FragmentActivity implements SensorEventListe
     ArrayList<Double> accel_mag = new ArrayList<Double>();
 
     // Cvs file
-
+    public ArrayList<Attribute> attributes;
     private final String[] attrList = {"Wrist_Ax", "Wrist_Ay", "Wrist_Az", "Wrist_Lx", "Wrist_Ly", "Wrist_Lz", "Wrist_Gx", "Wrist_Gy", "Wrist_Gz", "Wrist_Mx", "Wrist_My", "Wrist_Mz", "Activity"};
     private final String[] activities = {"walking", "standing", "jogging", "sitting","biking","upstairs","downstairs"};
     Instances liveData = null;
 
 
     private Instances createInstances(String name, String[] attList, String[] activityList, int capacity){
-        ArrayList<Attribute> attTemp = new ArrayList<Attribute>();
+        attributes = new ArrayList<>();
         ArrayList<String> activityTemp = new ArrayList<String>();
         for(int i=0; i<attList.length-1;i++){
-            attTemp.add(new Attribute(attList[i]));
+            attributes.add(new Attribute(attList[i]));
         }
         for(int i=0; i < activityList.length; i++){
             activityTemp.add(activityList[i]);
         }
-        attTemp.add(new Attribute(attList[attList.length], activityTemp));
+        attributes.add(new Attribute(attList[attList.length-1], activityTemp));
 
-        return new Instances(name, attTemp, capacity);
+        return new Instances(name, attributes, capacity);
     }
 
     @Override
@@ -120,10 +120,10 @@ public class SensorActivity extends FragmentActivity implements SensorEventListe
         linear_acceleration = sensorManager.getDefaultSensor(Sensor.TYPE_LINEAR_ACCELERATION);
         magnetometer = sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
 
-        sensorManager.registerListener((SensorEventListener) SensorActivity.this, accelerometer, 200000);
-        sensorManager.registerListener((SensorEventListener) SensorActivity.this, gyroscope, 200000);
-        sensorManager.registerListener((SensorEventListener) SensorActivity.this, linear_acceleration, 200000);
-        sensorManager.registerListener((SensorEventListener) SensorActivity.this, magnetometer, 200000);
+        sensorManager.registerListener((SensorEventListener) SensorActivity.this, accelerometer, dt);
+        sensorManager.registerListener((SensorEventListener) SensorActivity.this, gyroscope, dt);
+        sensorManager.registerListener((SensorEventListener) SensorActivity.this, linear_acceleration, dt);
+        sensorManager.registerListener((SensorEventListener) SensorActivity.this, magnetometer, dt);
 
         liveData = createInstances("test", attrList, activities, 50);
     }
@@ -132,10 +132,9 @@ public class SensorActivity extends FragmentActivity implements SensorEventListe
     public void onClick(View view) {
 
         // When this button gets clicked, you will move into the history tab
-        if (view.equals(history_tab)){
-
-
-        }
+//        if (view.equals(history_tab)){
+//
+//        }
     }
 
     @Override
