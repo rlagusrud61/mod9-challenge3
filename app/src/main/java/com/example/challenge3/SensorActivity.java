@@ -37,6 +37,9 @@ public class SensorActivity extends FragmentActivity implements SensorEventListe
     //List with magnitudes of acceleration
     ArrayList<Double> accel_mag = new ArrayList<Double>();
 
+    // Cvs file
+
+
 
     @Override
     public final void onCreate(Bundle savedInstanceState) {
