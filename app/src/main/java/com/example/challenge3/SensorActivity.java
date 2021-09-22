@@ -21,49 +21,22 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import weka.classifiers.Classifier;
+import weka.core.DenseInstance;
+import weka.core.Instance;
+import weka.core.Instances;
 
 
-
-public class SensorActivity extends FragmentActivity implements SensorEventListener {
+public class SensorActivity extends FragmentActivity  {
 
     // sending log output TAG
     private static final String TAG = "MyActivity";
 
     // Front-End components
-    TextView introText1, info_text;
-    ImageButton startButton, again;
-    LinearLayout linearLayout;
+    public TextView introText1, info_text;
+    public ImageButton startButton, again;
+    public LinearLayout linearLayout;
+    public SensorManager sensorManager;
 
-    // Accelerometer, Gyroscope, Linear_acceleration, Magnetometer
-    private SensorManager sensorManager;
-    private Sensor accelerometer;
-    private Sensor gyroscope;
-    private Sensor linear_acceleration;
-    private Sensor magnetometer;
-
-    // 20,000 microseconds = 50Hz
-    private final int dt = 20000;
-
-    //List with magnitudes of acceleration
-    ArrayList<Double> accel_mag = new ArrayList<Double>();
-
-    // Cvs file
-
-    @SuppressLint("NewAPI") // Android Studio doesn't know the backport of API
-    public String convertToCSV(String[] data){
-        return Stream.of(data)
-                .map(this::escapeSpecialCharacters)
-                .collect(Collectors.joining(","));
-    }
-
-    public String escapeSpecialCharacters(String data) {
-        String escapedData = data.replaceAll("\\R", " ");
-        if (data.contains(",") || data.contains("\"") || data.contains("'")) {
-            data = data.replace("\"", "\"\"");
-            escapedData = "\"" + data + "\"";
-        }
-        return escapedData;
-    }
     @Override
     public final void onCreate(Bundle savedInstanceState) {
 
@@ -80,79 +53,17 @@ public class SensorActivity extends FragmentActivity implements SensorEventListe
         // Check the user has the right permissions enabled
         checkPermissions((Activity) this);
 
+
+        sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
+        SensorData sensorData = new SensorData(sensorManager);
         // Open Weka model
         try {
-            Classifier classifier = (Classifier) weka.core.SerializationHelper.read("RandomTree.model");
+            Classifier classifier = (Classifier) weka.core.SerializationHelper.read(getAssets().open("../RandomTree.model"));
+            classifier.classifyInstance(sensorData);
         } catch (Exception e) {
             e.printStackTrace();
         }
 
-        // Start reading values from the sensors
-        sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
-        accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
-        gyroscope = sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE);
-        linear_acceleration = sensorManager.getDefaultSensor(Sensor.TYPE_LINEAR_ACCELERATION);
-        magnetometer = sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
-
-        sensorManager.registerListener((SensorEventListener) SensorActivity.this, accelerometer, dt);
-        sensorManager.registerListener((SensorEventListener) SensorActivity.this, gyroscope, dt);
-        sensorManager.registerListener((SensorEventListener) SensorActivity.this, linear_acceleration, dt);
-        sensorManager.registerListener((SensorEventListener) SensorActivity.this, magnetometer, dt);
-
-
-    }
-
-    @Override
-    public final void onSensorChanged(SensorEvent event) {
-
-        // Getting the accelerometer values
-        if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
-
-            float Ax = event.values[0];
-            float Ay = event.values[1];
-            float Az = event.values[2];
-
-            // Calculating the magnitude of the acceleration
-            accel_mag.add(Math.sqrt(Ax * Ax + Ay * Ay + Az * Az) - 9.81);
-
-            double mag = averageAccelerometer(accel_mag);
-        }
-
-        // Getting the gyroscope values
-        if (event.sensor.getType() == Sensor.TYPE_GYROSCOPE) {
-            float Gx = event.values[0];
-            float Gy = event.values[1];
-            float Gz = event.values[2];
-        }
-
-        // Getting the linear acceleration values
-        if (event.sensor.getType() == Sensor.TYPE_LINEAR_ACCELERATION) {
-            float Lx = event.values[0];
-            float Ly = event.values[1];
-            float Lz = event.values[2];
-        }
-
-        // Getting the magnetometer values
-        if (event.sensor.getType() == Sensor.TYPE_MAGNETIC_FIELD) {
-            float Mx = event.values[0];
-            float My = event.values[1];
-            float Mz = event.values[2];
-        }
-
-    }
-
-    // calculate average of an arraylist of any size
-    private float averageAccelerometer(ArrayList<Double> input) {
-        float temp = 0;
-        for (int i=0; i<input.size();i++) { // sum all elements
-            temp += input.get(i);
-        }
-        return temp/input.size(); // divide summed up elements by the number of elements
-    }
-
-
-    @Override
-    public void onAccuracyChanged(Sensor sensor, int i) {
 
     }
 
