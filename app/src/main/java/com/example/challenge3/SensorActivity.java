@@ -39,6 +39,7 @@ public class SensorActivity extends FragmentActivity implements SensorEventListe
 
     // sending log output TAG
     private static final String TAG = "MyActivity";
+    float RC;
 
     // Front-End components
     TextView introText, ActivityType, CurrentTime;
@@ -63,7 +64,6 @@ public class SensorActivity extends FragmentActivity implements SensorEventListe
     private Sensor magnetometer;
     float Ax,Ay,Az,Lx,Ly,Lz,Mx,My,Mz,Gx,Gy,Gz;
     ArrayList<Attribute> fvWekaAttributes;
-    Instances trainingSet;
     boolean aFirst = true;
     boolean gFirst = true;
     boolean lFirst = true;
@@ -79,6 +79,9 @@ public class SensorActivity extends FragmentActivity implements SensorEventListe
     boolean gyroUpdated = false;
     boolean linearaccUpdated = false;
     boolean magnetoUpdated = false;
+
+    Instances instances;
+    Instance instance;
 
     HashMap<Integer,Integer> readings;
     Classifier cls;
@@ -153,7 +156,7 @@ public class SensorActivity extends FragmentActivity implements SensorEventListe
         instances = new Instances("Bruh", fvWekaAttributes, 5);
         instances.setClassIndex(NUMBER_OF_ATTRIBUTES-1);
         try {
-            cls = (Classifier) weka.core.SerializationHelper.read(getAssets().open("naiveBayes.model"));
+            cls = (Classifier) weka.core.SerializationHelper.read(getAssets().open("j48Wrist.model"));
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -295,17 +298,15 @@ public class SensorActivity extends FragmentActivity implements SensorEventListe
             }
         }
 
-    }
-
-            if (accUpdated && magnetoUpdated && linearaccUpdated && gyroUpdated){
+        if (accUpdated && magnetoUpdated && linearaccUpdated && gyroUpdated){
             classifyInstance();
             accUpdated = false;
             magnetoUpdated = false;
             linearaccUpdated = false;
             gyroUpdated = false;
         }
-            getPredictedActivity();
-    }
+        getPredictedActivity();
+}
 
 
     public int getActivityWithMostOccurrence(){
@@ -331,11 +332,12 @@ public class SensorActivity extends FragmentActivity implements SensorEventListe
 
         //if it reaches 150 readings
         if (sum == NUMBER_OF_READINGS){
+            Log.d(TAG,"FATIMA");
             Log.d(TAG, readings.toString());
-            info_text.setText(readings.toString());
+            introText.setText(readings.toString());
             int prediction = getActivityWithMostOccurrence();
-            introText1.setText("You are most likely " + activities[prediction]);
-            Log.d(TAG, "You are most likely " + activities[prediction]);
+            introText.setText("You are most likely " + activity[prediction]);
+            Log.d(TAG, "You are most likely " + activity[prediction]);
             readings.clear();
         }
     }
@@ -364,8 +366,8 @@ public class SensorActivity extends FragmentActivity implements SensorEventListe
         Attribute Wrist_Mz = new Attribute("Wrist_Mz");
 
         ArrayList<String> acList = new ArrayList<>();
-        for(int i=0; i<activities.length; i++) {
-            acList.add(activities[i]);
+        for(int i=0; i<activity.length; i++) {
+            acList.add(activity[i]);
         }
         Attribute Activity = new Attribute("Activity",acList);
 
@@ -423,7 +425,6 @@ public class SensorActivity extends FragmentActivity implements SensorEventListe
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return prediction;
     }
 
 
