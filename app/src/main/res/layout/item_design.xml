@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="95dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="10dp">
+
+        <androidx.cardview.widget.CardView
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            android:id="@+id/imageview"
+            app:cardCornerRadius="60dp"
+            android:layout_marginTop="20dp"
+            android:layout_marginBottom="20dp">
+            
+            <ImageView
+                android:layout_width="60dp"
+                android:layout_height="60dp"
+                android:scaleType="centerCrop"
+                android:id="@+id/imageview1"
+                android:src="@drawable/biking">
+            </ImageView>
+
+        </androidx.cardview.widget.CardView>
+
+        <TextView
+            android:id="@+id/ActivityType"
+            android:layout_width="120dp"
+            android:layout_height="40dp"
+            android:layout_marginLeft="16dp"
+            android:layout_marginTop="20dp"
+            android:layout_toRightOf="@+id/imageview"
+            android:fontFamily="@font/quicksand"
+            android:text="Runninng"
+            android:textColor="#141414"
+            android:textSize="26sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/CurrentTime"
+            android:layout_width="70dp"
+            android:layout_height="wrap_content"
+            android:layout_toRightOf="@+id/ActivityType"
+            android:text="17:00 pm"
+            android:layout_marginLeft="75dp"
+            android:layout_marginTop="20dp"/>
+
+        <TextView
+            android:id="@+id/Divider"
+            android:layout_width="match_parent"
+            android:layout_height="30dp"
+            android:text="__________________________________________________________________________________"
+            android:textSize="15sp"
+            android:layout_toRightOf="@+id/imageview"
+            android:layout_below="@+id/imageview"
+            android:layout_marginLeft="20dp"
+            android:layout_marginTop="-40dp" />
+
+
+    </RelativeLayout>
+
+
+
+
+</RelativeLayout>

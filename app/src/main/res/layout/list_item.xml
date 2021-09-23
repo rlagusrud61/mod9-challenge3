@@ -37,6 +37,9 @@
                 android:layout_alignParentRight="true"
                 android:text="17:00 pm" />
 
+
+
+
         </LinearLayout>
 
     </RelativeLayout>

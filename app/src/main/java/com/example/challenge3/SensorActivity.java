@@ -20,9 +20,12 @@ import android.widget.TextView;
 
 import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.FragmentActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import weka.classifiers.Classifier;
@@ -43,13 +46,11 @@ public class SensorActivity extends FragmentActivity implements SensorEventListe
     float RC = (float) (1/(2*Math.PI*Fc));
 
     // Front-End components
-    TextView introText, ActivityType, CurrentTime;
+    TextView introText;
     ImageButton activities, history;
     ListView listView;
-    LinearLayout linearLayout;
 
     //History
-    String[] history_arrayl;
     boolean inHistory = false;
     boolean atHomeScreen = true;
 
@@ -104,6 +105,14 @@ public class SensorActivity extends FragmentActivity implements SensorEventListe
         }
     }
 
+    // Recycler View Initialisation
+    RecyclerView recyclerView;
+    LinearLayoutManager linearLayoutManager;
+    List<Model> activityList;
+    Adapter adapter;
+
+
+
 
     @Override
     public final void onCreate(Bundle savedInstanceState) {
@@ -138,6 +147,10 @@ public class SensorActivity extends FragmentActivity implements SensorEventListe
             eventsAL.add(event);
         }
 
+        // Recycler View
+        initData();
+        initRecyclerView();
+
 
         // Check the user has the right permissions enabled
 //        checkPermissions((Activity) this);
@@ -168,6 +181,25 @@ public class SensorActivity extends FragmentActivity implements SensorEventListe
 
     }
 
+    private void initRecyclerView() {
+        recyclerView = findViewById(R.id.recyclerView);
+        linearLayoutManager = new LinearLayoutManager(this);
+        linearLayoutManager.setOrientation(RecyclerView.VERTICAL);
+        recyclerView.setLayoutManager(linearLayoutManager);
+        adapter = new Adapter(activityList);
+        recyclerView.setAdapter(adapter);
+        adapter.notifyDataSetChanged();
+    }
+
+    private void initData() {
+        activityList = new ArrayList<>();
+        activityList.add(new Model(R.drawable.biking, "biking", "17:00 pm", "_______________________________________"));
+        activityList.add(new Model(R.drawable.biking, "biking", "17:00 pm", "_______________________________________"));
+        activityList.add(new Model(R.drawable.biking, "biking", "17:00 pm", "_______________________________________"));
+        activityList.add(new Model(R.drawable.biking, "biking", "17:00 pm", "_______________________________________"));
+
+    }
+
     public void initiateReadings(){
         readings = new HashMap<>();
         for (int i = 0 ; i < 7 ; i ++){
@@ -193,18 +225,15 @@ public class SensorActivity extends FragmentActivity implements SensorEventListe
                activities.setImageResource(R.drawable.play);
                activities.setVisibility(View.VISIBLE);
                introText.setVisibility(View.VISIBLE);
+               recyclerView.setVisibility(View.GONE);
                atHomeScreen = true;
-
-               //listView.setVisibility(View.GONE);
 
            } else {
                inHistory = true;
                activities.setVisibility(View.GONE);
                introText.setVisibility(View.GONE);
                history.setImageResource(R.drawable.home_button);
-
-               // CREATE HERE THE HISTORY TABS.
-               //listView.setVisibility(View.VISIBLE);
+               recyclerView.setVisibility(View.VISIBLE);
            }
        }
     }

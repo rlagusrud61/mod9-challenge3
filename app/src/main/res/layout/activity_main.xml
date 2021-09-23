@@ -59,6 +59,13 @@
                 android:visibility="gone"
                 tools:listitem="@layout/list_item" />
 
+            <androidx.recyclerview.widget.RecyclerView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:visibility="gone"
+                android:id="@+id/recyclerView" >
+            </androidx.recyclerview.widget.RecyclerView>
+
 
             // History tab and home button
             <ImageButton
