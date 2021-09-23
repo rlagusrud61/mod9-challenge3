@@ -62,8 +62,13 @@ public class SensorActivity extends FragmentActivity implements SensorEventListe
     private final int dt = 20000;
     private final int NUMBER_OF_READINGS = 150;
 
-    Classifier cls;
+    boolean accUpdated = false;
+    boolean gyroUpdated = false;
+    boolean linearaccUpdated = false;
+    boolean magnetoUpdated = false;
+
     HashMap<Integer,Integer> readings;
+    Classifier cls;
 
     private final String[] activities = {"walking", "standing", "jogging", "sitting","biking","upstairs","downstairs"};
 
@@ -131,51 +136,67 @@ public class SensorActivity extends FragmentActivity implements SensorEventListe
     @Override
     public final void onSensorChanged(SensorEvent event) {
         // Getting the accelerometer values
-        if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
 
-            Ax = event.values[0];
-            Ay = event.values[1];
-            Az = event.values[2];
-            Log.d(TAG, "Ax : " + Ax + " // Ay : " + Ay + " // Az : " + Az);
+            if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
 
+                Ax = event.values[0];
+                Ay = event.values[1];
+                Az = event.values[2];
+//                Log.d(TAG, "Ax : " + Ax + " // Ay : " + Ay + " // Az : " + Az);
+                accUpdated = true;
+            }
+
+            // Getting the gyroscope values
+            if (event.sensor.getType() == Sensor.TYPE_GYROSCOPE) {
+                Gx = event.values[0];
+                Gy = event.values[1];
+                Gz = event.values[2];
+                gyroUpdated = true;
+            }
+
+            // Getting the linear acceleration values
+            if (event.sensor.getType() == Sensor.TYPE_LINEAR_ACCELERATION) {
+                Lx = event.values[0];
+                Ly = event.values[1];
+                Lz = event.values[2];
+                linearaccUpdated = true;
+            }
+
+            // Getting the magnetometer values
+            if (event.sensor.getType() == Sensor.TYPE_MAGNETIC_FIELD) {
+                Mx = event.values[0];
+                My = event.values[1];
+                Mz = event.values[2];
+                magnetoUpdated = true;
+            }
+
+
+            if (accUpdated && magnetoUpdated && linearaccUpdated && gyroUpdated){
+            classifyInstance();
+            accUpdated = false;
+            magnetoUpdated = false;
+            linearaccUpdated = false;
+            gyroUpdated = false;
         }
-
-        // Getting the gyroscope values
-        if (event.sensor.getType() == Sensor.TYPE_GYROSCOPE) {
-            Gx = event.values[0];
-            Gy = event.values[1];
-            Gz = event.values[2];
-        }
-
-        // Getting the linear acceleration values
-        if (event.sensor.getType() == Sensor.TYPE_LINEAR_ACCELERATION) {
-            Lx = event.values[0];
-            Ly = event.values[1];
-            Lz = event.values[2];
-        }
-
-        // Getting the magnetometer values
-        if (event.sensor.getType() == Sensor.TYPE_MAGNETIC_FIELD) {
-            Mx = event.values[0];
-            My = event.values[1];
-            Mz = event.values[2];
-        }
-        classifyInstance();
-        getPredictedActivity();
+            getPredictedActivity();
     }
 
 
     public int getActivityWithMostOccurrence(){
         // Get the activity with the most occurrence
-        int maxPrediction = 0;
+        int maxPredictionValue = 0;
+        int maxPredictionKey = 0;
         for (Map.Entry<Integer, Integer> entry : readings.entrySet()){
-            if (entry.getValue().compareTo(entry.getValue()) > 0)
+            if (maxPredictionValue < entry.getValue())
             {
-                // might produce nullpointer
-                maxPrediction = entry.getKey();
+                Log.d(TAG, "Entry key  : " + entry.getKey() + " value :" + entry.getValue());
+                Log.d(TAG, "New maxPrediction = " + maxPredictionValue);
+                maxPredictionValue = entry.getValue();
+                maxPredictionKey = entry.getKey();
             }
-        }return maxPrediction;
+        }return maxPredictionKey;
     }
+
     public void getPredictedActivity(){
         int sum = 0;
         for (int v: readings.values()){
@@ -184,6 +205,7 @@ public class SensorActivity extends FragmentActivity implements SensorEventListe
 
         //if it reaches 150 readings
         if (sum == NUMBER_OF_READINGS){
+            Log.d(TAG, readings.toString());
             int prediction = getActivityWithMostOccurrence();
             introText1.setText("You are most likely " + activities[prediction]);
             Log.d(TAG, "You are most likely " + activities[prediction]);
@@ -239,7 +261,7 @@ public class SensorActivity extends FragmentActivity implements SensorEventListe
         int prediction = 0;
         try {
 
-            double[] attrValues = new double[12];
+            double[] attrValues = new double[NUMBER_OF_ATTRIBUTES-1];
             attrValues[0] = Ax;
             attrValues[1] = Ay;
             attrValues[2] = Az;
@@ -264,7 +286,7 @@ public class SensorActivity extends FragmentActivity implements SensorEventListe
             // increase the count in the hashmap after classifying as this <activity>
             // might have nullpointer whoops
             int count = readings.containsKey(prediction) ? readings.get(prediction) : 0;
-            readings.put(prediction, count +1);
+            readings.put(prediction, count + 1);
 
         } catch (Exception e) {
             e.printStackTrace();
