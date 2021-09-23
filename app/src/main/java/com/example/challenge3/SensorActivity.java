@@ -52,11 +52,17 @@ public class SensorActivity extends FragmentActivity implements SensorEventListe
     float Ax,Ay,Az,Lx,Ly,Lz,Mx,My,Mz,Gx,Gy,Gz;
     ArrayList<Attribute> fvWekaAttributes = new ArrayList<>();
     Instances trainingSet;
+    boolean aFirst = true;
+    boolean gFirst = true;
+    boolean lFirst = true;
+    boolean mFirst = true;
 
     public static int NUMBER_OF_ATTRIBUTES = 13;
     public static int NUMBER_OF_ATTRIBUTES_WITHOUT_CLASS = 12;
     // 20,000 microseconds = 50Hz
     private final int dt = 20000;
+    private final float fc = 1;
+    private final float RC = (float) (1/(2*Math.PI*fc));
 
     //List with magnitudes of acceleration
     ArrayList<Double> accel_mag = new ArrayList<Double>();
@@ -83,6 +89,20 @@ public class SensorActivity extends FragmentActivity implements SensorEventListe
 //
 //        return new Instances(name, attributes, capacity);
 //    }
+
+    public float lowPass(float x,  float lastY, float RC, int dt, boolean first){
+        float alpha = dt/(RC+dt);
+        //Log.d("filter", "alpha: " + alpha);
+        float y;
+
+        if(first){
+            return alpha*x;
+        }
+        else {
+            y = alpha * x + (1 - alpha) * lastY;
+            return y;
+        }
+    }
 
     @Override
     public final void onCreate(Bundle savedInstanceState) {
@@ -132,31 +152,69 @@ public class SensorActivity extends FragmentActivity implements SensorEventListe
 
         // Getting the accelerometer values
         if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
+            if(aFirst){
+                Ax = lowPass(event.values[0],0,RC,dt,true);
+                Ay = lowPass(event.values[1],0,RC,dt,true);
+                Az = lowPass(event.values[2],0,RC,dt,true);
+                aFirst = false;
 
-            Ax = event.values[0];
-            Ay = event.values[1];
-            Az = event.values[2];
+            }
+            else{
+                float x = event.values[0];
+                Ax = lowPass(event.values[0],Ax,RC,dt, false);
+                Ay = lowPass(event.values[1],Ay,RC,dt,false);
+                Az = lowPass(event.values[2],Az,RC,dt,false);
+                //Log.d("filter", "x: "+ x + " y: " + Ax);
+            }
+
+
         }
 
         // Getting the gyroscope values
         if (event.sensor.getType() == Sensor.TYPE_GYROSCOPE) {
-            Gx = event.values[0];
-            Gy = event.values[1];
-            Gz = event.values[2];
+            if(gFirst){
+                Gx = lowPass(event.values[0],0,RC,dt,true);
+                Gy = lowPass(event.values[1],0,RC,dt,true);
+                Gz = lowPass(event.values[2],0,RC,dt,true);
+                gFirst = false;
+            }
+            else{
+                Gx = lowPass(event.values[0],Gx,RC,dt, false);
+                Gy = lowPass(event.values[1],Gy,RC,dt,false);
+                Gz = lowPass(event.values[2],Gz,RC,dt,false);
+            }
         }
 
         // Getting the linear acceleration values
         if (event.sensor.getType() == Sensor.TYPE_LINEAR_ACCELERATION) {
-            Lx = event.values[0];
-            Ly = event.values[1];
-            Lz = event.values[2];
+            if(lFirst){
+                Lx = lowPass(event.values[0],0,RC,dt,true);
+                Ly = lowPass(event.values[1],0,RC,dt,true);
+                Lz = lowPass(event.values[2],0,RC,dt,true);
+                lFirst = false;
+            }
+            else{
+                Lx = lowPass(event.values[0],Lx,RC,dt, false);
+                Ly = lowPass(event.values[1],Ly,RC,dt,false);
+                Lz = lowPass(event.values[2],Lz,RC,dt,false);
+            }
         }
 
         // Getting the magnetometer values
         if (event.sensor.getType() == Sensor.TYPE_MAGNETIC_FIELD) {
-            Mx = event.values[0];
-            My = event.values[1];
-            Mz = event.values[2];
+            if(mFirst){
+                Mx = lowPass(event.values[0],0,RC,dt,true);
+                My = lowPass(event.values[1],0,RC,dt,true);
+                Mz = lowPass(event.values[2],0,RC,dt,true);
+                mFirst = false;
+                //Log.d("filter", "first time m: " + Mz + " original: " + event.values[2]);
+            }
+            else{
+                Mx = lowPass(event.values[0],Mx,RC,dt, false);
+                My = lowPass(event.values[1],My,RC,dt,false);
+                Mz = lowPass(event.values[2],Mz,RC,dt,false);
+                //Log.d("filter", "m: " + Mz + " original: " + event.values[2]);
+            }
         }
 
     }
