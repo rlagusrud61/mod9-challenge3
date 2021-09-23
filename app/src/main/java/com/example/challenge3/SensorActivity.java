@@ -245,11 +245,6 @@ public class SensorActivity extends FragmentActivity implements SensorEventListe
                 System.out.println("No activity has been recorded");
         }
 
-
-        if (current_state == ){
-            activities.setImageResource(R.drawable.play);
-        }
-
     }
 
 
