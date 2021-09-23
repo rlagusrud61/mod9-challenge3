@@ -67,28 +67,29 @@ public class SensorActivity extends FragmentActivity implements SensorEventListe
 
     //List with magnitudes of acceleration
     ArrayList<Double> accel_mag = new ArrayList<Double>();
+    Instances instances;
 
 
     // Cvs file
-/*    public ArrayList<Attribute> attributes;
-    private final String[] attrList = {"Wrist_Ax", "Wrist_Ay", "Wrist_Az", "Wrist_Lx", "Wrist_Ly", "Wrist_Lz", "Wrist_Gx", "Wrist_Gy", "Wrist_Gz", "Wrist_Mx", "Wrist_My", "Wrist_Mz", "Activity"};
+//   public ArrayList<Attribute> attributes;
+//    private final String[] attrList = {"Wrist_Ax", "Wrist_Ay", "Wrist_Az", "Wrist_Lx", "Wrist_Ly", "Wrist_Lz", "Wrist_Gx", "Wrist_Gy", "Wrist_Gz", "Wrist_Mx", "Wrist_My", "Wrist_Mz", "Activity"};
     private final String[] activities = {"walking", "standing", "jogging", "sitting","biking","upstairs","downstairs"};
-    Instances liveData = null;
-
-
-    private Instances createInstances(String name, String[] attList, String[] activityList, int capacity){
-        attributes = new ArrayList<>();
-        ArrayList<String> activityTemp = new ArrayList<String>();
-        for(int i=0; i<attList.length-1;i++){
-            attributes.add(new Attribute(attList[i]));
-        }
-        for(int i=0; i < activityList.length; i++){
-            activityTemp.add(activityList[i]);
-        }
-        attributes.add(new Attribute(attList[attList.length-1], activityTemp));
-
-        return new Instances(name, attributes, capacity);
-    }*/
+//    Instances liveData = null;
+//
+//
+//    private Instances createInstances(String name, String[] attList, String[] activityList, int capacity){
+//        attributes = new ArrayList<>();
+//        ArrayList<String> activityTemp = new ArrayList<String>();
+//        for(int i=0; i<attList.length-1;i++){
+//            attributes.add(new Attribute(attList[i]));
+//        }
+//        for(int i=0; i < activityList.length; i++){
+//            activityTemp.add(activityList[i]);
+//        }
+//        attributes.add(new Attribute(attList[attList.length-1], activityTemp));
+//
+//        return new Instances(name, attributes, capacity);
+//    }
 
     @Override
     public final void onCreate(Bundle savedInstanceState) {
@@ -106,16 +107,8 @@ public class SensorActivity extends FragmentActivity implements SensorEventListe
         history =  findViewById(R.id.history);
         history_tab.setOnClickListener(this);
 
-
         // Check the user has the right permissions enabled
         checkPermissions((Activity) this);
-
-        // Open Weka model
-        try {
-            Classifier classifier = (Classifier) weka.core.SerializationHelper.read("RandomTree.model");
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
 
         // Start reading values from the sensors
         sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
@@ -129,7 +122,7 @@ public class SensorActivity extends FragmentActivity implements SensorEventListe
         sensorManager.registerListener((SensorEventListener) SensorActivity.this, linear_acceleration, dt);
         sensorManager.registerListener((SensorEventListener) SensorActivity.this, magnetometer, dt);
 
-        //liveData = createInstances("test", attrList, activities, 50);
+        classifyInstance();
     }
 
     @Override
@@ -150,11 +143,6 @@ public class SensorActivity extends FragmentActivity implements SensorEventListe
             Ax = event.values[0];
             Ay = event.values[1];
             Az = event.values[2];
-
-            // Calculating the magnitude of the acceleration
-            accel_mag.add(Math.sqrt(Ax * Ax + Ay * Ay + Az * Az) - 9.81);
-
-            double mag = averageAccelerometer(accel_mag);
         }
 
         // Getting the gyroscope values
@@ -178,16 +166,6 @@ public class SensorActivity extends FragmentActivity implements SensorEventListe
             Mz = event.values[2];
         }
 
-
-    }
-
-    // calculate average of an arraylist of any size
-    private float averageAccelerometer(ArrayList<Double> input) {
-        float temp = 0;
-        for (int i=0; i<input.size();i++) { // sum all elements
-            temp += input.get(i);
-        }
-        return temp/input.size(); // divide summed up elements by the number of elements
     }
 
 
@@ -207,11 +185,10 @@ public class SensorActivity extends FragmentActivity implements SensorEventListe
         }
         ActivityCompat.requestPermissions(activity, new String[]{ Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE }, 1);
         return false;
-
     }
 
-    public void weka(){
-
+    public double classifyInstance(){
+        int prediction = 0;
         try {
 
             int NUMBER_OF_ATTRIBUTES = 13;
@@ -232,7 +209,7 @@ public class SensorActivity extends FragmentActivity implements SensorEventListe
             Attribute Wrist_Mz = new Attribute("Wrist_Mz");
             Attribute AttributeClass = new Attribute("AttributeClass");
 
-            // Creating a vecotr with 13 positions.
+            // Creating a vector with 13 positions.
             ArrayList<Attribute> fvWekaAttributes = new ArrayList<>(NUMBER_OF_ATTRIBUTES);
 
             // For each position, we add an attribute
@@ -271,11 +248,15 @@ public class SensorActivity extends FragmentActivity implements SensorEventListe
 
             trainingSet.add(instance);
             Classifier cls = (Classifier) weka.core.SerializationHelper.read(getAssets().open("RandomTree.model"));
-            double prediction = cls.classifyInstance(trainingSet.instance(0));
+            prediction = (int)cls.classifyInstance(trainingSet.instance(0));
+            Log.d(TAG, "Prediction : " + prediction);
+            Log.d(TAG, "istrainingset:" + trainingSet);
+            introText1.setText(activities[prediction]);
         } catch (Exception e) {
 
         }
-
+        return prediction;
     }
+
 
 };
