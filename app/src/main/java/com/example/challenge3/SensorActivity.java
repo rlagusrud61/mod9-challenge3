@@ -74,8 +74,6 @@ public class SensorActivity extends FragmentActivity implements SensorEventListe
     ArrayList<Double> accel_mag = new ArrayList<Double>();
     Instances instances;
 
-    private final String[] activities = {"walking", "standing", "jogging", "sitting","biking","upstairs","downstairs"};
-
     public float lowPass(float x,  float lastY, float RC, int dt, boolean first){
         float alpha = dt/(RC+dt);
         //Log.d("filter", "alpha: " + alpha);
