@@ -104,7 +104,7 @@ public class SensorActivity extends FragmentActivity implements SensorEventListe
         instances = new Instances("Bruh", fvWekaAttributes, 5);
         instances.setClassIndex(NUMBER_OF_ATTRIBUTES-1);
         try {
-            cls = (Classifier) weka.core.SerializationHelper.read(getAssets().open("bayesNetNiels.model"));
+            cls = (Classifier) weka.core.SerializationHelper.read(getAssets().open("RandomTree.model"));
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -130,7 +130,6 @@ public class SensorActivity extends FragmentActivity implements SensorEventListe
 
     @Override
     public final void onSensorChanged(SensorEvent event) {
-        Log.d(TAG, "onSensorchanged");
         // Getting the accelerometer values
         if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
 
@@ -237,7 +236,6 @@ public class SensorActivity extends FragmentActivity implements SensorEventListe
 
     }
     public void classifyInstance(){
-        Log.d(TAG, "Classifying instance...");
         int prediction = 0;
         try {
 
