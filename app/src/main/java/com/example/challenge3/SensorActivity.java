@@ -8,11 +8,13 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
+import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 
@@ -35,13 +37,17 @@ public class SensorActivity extends FragmentActivity implements SensorEventListe
     private static final String TAG = "MyActivity";
 
     // Front-End components
-    TextView introText1, info_text;
-    ImageButton history_tab, again;
+    TextView introText, ActivityType, CurrentTime;
+    ImageButton activities, history;
+    ListView listView;
     LinearLayout linearLayout;
-    ListView history;
 
     //History
     String[] history_arrayl;
+    boolean inHistory = false;
+    boolean atHomeScreen = true;
+
+    MediaPlayer biking, going_upstairs, going_downstairs, jogging, sitting, standing, walking;
 
     // Accelerometer, Gyroscope, Linear_acceleration, Magnetometer
     private SensorManager sensorManager;
@@ -68,27 +74,7 @@ public class SensorActivity extends FragmentActivity implements SensorEventListe
     ArrayList<Double> accel_mag = new ArrayList<Double>();
     Instances instances;
 
-
-    // Cvs file
-//   public ArrayList<Attribute> attributes;
-//    private final String[] attrList = {"Wrist_Ax", "Wrist_Ay", "Wrist_Az", "Wrist_Lx", "Wrist_Ly", "Wrist_Lz", "Wrist_Gx", "Wrist_Gy", "Wrist_Gz", "Wrist_Mx", "Wrist_My", "Wrist_Mz", "Activity"};
     private final String[] activities = {"walking", "standing", "jogging", "sitting","biking","upstairs","downstairs"};
-//    Instances liveData = null;
-//
-//
-//    private Instances createInstances(String name, String[] attList, String[] activityList, int capacity){
-//        attributes = new ArrayList<>();
-//        ArrayList<String> activityTemp = new ArrayList<String>();
-//        for(int i=0; i<attList.length-1;i++){
-//            attributes.add(new Attribute(attList[i]));
-//        }
-//        for(int i=0; i < activityList.length; i++){
-//            activityTemp.add(activityList[i]);
-//        }
-//        attributes.add(new Attribute(attList[attList.length-1], activityTemp));
-//
-//        return new Instances(name, attributes, capacity);
-//    }
 
     public float lowPass(float x,  float lastY, float RC, int dt, boolean first){
         float alpha = dt/(RC+dt);
@@ -104,21 +90,40 @@ public class SensorActivity extends FragmentActivity implements SensorEventListe
         }
     }
 
+
     @Override
     public final void onCreate(Bundle savedInstanceState) {
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // Initialize front-end
-        introText1 = findViewById(R.id.introText1);
-        history_tab = findViewById(R.id.history_tab);
-        again = findViewById(R.id.again);
-        linearLayout = findViewById(R.id.layout);
-        info_text = findViewById(R.id.info_text);
+        // Initialize front-end and set button listeners
+        introText = findViewById(R.id.introText);
+        activities = findViewById(R.id.activities);
+        history = findViewById(R.id.history);
+        listView = findViewById(R.id.listView);
+        //linearLayout = findViewById(R.id.linearLayout);
+        activities.setOnClickListener(this);
+        history.setOnClickListener(this);
 
-        history =  findViewById(R.id.history);
-        history_tab.setOnClickListener(this);
+        biking = MediaPlayer.create(this,R.raw.biking);
+        going_upstairs = MediaPlayer.create(this,R.raw.going_upstairs);
+        going_downstairs = MediaPlayer.create(this,R.raw.going_downstairs);
+        jogging = MediaPlayer.create(this,R.raw.jogging);
+        sitting = MediaPlayer.create(this,R.raw.sitting);
+        standing = MediaPlayer.create(this,R.raw.standing);
+        walking = MediaPlayer.create(this,R.raw.walking);
+
+        String[] events = {"Jogging","Jogging","Walking","Going up the stairs","Sitting","Walking","Standing"};
+        String[] times = {"8:45 pm","9:00 am","7:34 pm","6:32 am","5:76 am","5:00 am","7:34 pm"};
+
+        ArrayList<Event> eventsAL = new ArrayList<>();
+
+        for(int i = 0; i<events.length;i++){
+            Event event = new Event(events[i],times[i]);
+            eventsAL.add(event);
+        }
+
 
         // Check the user has the right permissions enabled
 //        checkPermissions((Activity) this);
@@ -142,10 +147,59 @@ public class SensorActivity extends FragmentActivity implements SensorEventListe
     public void onClick(View view) {
 
         // When this button gets clicked, you will move into the history tab
-//        if (view.equals(history_tab)){
-//
-//        }
+       if (view.equals(activities) && atHomeScreen){
+           introText.setText("You are");
+           atHomeScreen = false;
+       }
+
+        if (view.equals(activities)) {
+            /*SoundPool sounds;
+            int sExplosion;
+            //declare variables
+            sounds = new SoundPool(10, AudioManager.STREAM_MUSIC,0);
+            sExplosion = sounds.load(this, R.raw.test_sound, 1);
+            sounds.play(sExplosion, 10.0f, 10.0f, 0, 0, 1.5f);*/
+            jogging.start();
+        }
+
+       if (view.equals(history)){
+
+           if (inHistory){
+               inHistory = false;
+               history.setImageResource(R.drawable.history);
+               introText.setText("Press the image to start");
+               activities.setImageResource(R.drawable.play);
+               activities.setVisibility(View.VISIBLE);
+               introText.setVisibility(View.VISIBLE);
+               atHomeScreen = true;
+
+               //listView.setVisibility(View.GONE);
+
+           } else {
+               inHistory = true;
+               activities.setVisibility(View.GONE);
+               introText.setVisibility(View.GONE);
+               history.setImageResource(R.drawable.home_button);
+
+               // CREATE HERE THE HISTORY TABS.
+               //listView.setVisibility(View.VISIBLE);
+           }
+       }
     }
+
+    public void ChangePictureAndSound(){
+
+        // walking, standing, jogging, sitting, biking, going upstairs, going downstairs
+
+        boolean running = false;
+        if (running){
+            activities.setImageResource(R.drawable.play);
+        }
+
+
+    }
+
+
 
     @Override
     public final void onSensorChanged(SensorEvent event) {
@@ -308,7 +362,8 @@ public class SensorActivity extends FragmentActivity implements SensorEventListe
             prediction = (int)cls.classifyInstance(trainingSet.instance(0));
             Log.d(TAG, "Prediction : " + prediction);
             Log.d(TAG, "istrainingset:" + trainingSet);
-            introText1.setText(activities[prediction]);
+
+            //introText1.setText(activities[prediction]);
 
         } catch (Exception e) {
 
