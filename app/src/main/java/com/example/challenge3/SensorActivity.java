@@ -39,7 +39,7 @@ public class SensorActivity extends FragmentActivity implements SensorEventListe
 
     // sending log output TAG
     private static final String TAG = "MyActivity";
-    float Fc = 50;
+    float Fc = 25;
     float RC = (float) (1/(2*Math.PI*Fc));
 
     // Front-End components
@@ -88,7 +88,8 @@ public class SensorActivity extends FragmentActivity implements SensorEventListe
     Classifier cls;
 
     public float lowPass(float x,  float lastY, float RC, int dt, boolean first){ //simple digital RC filter
-        float alpha = dt/(RC+dt);
+        float Dt = (float) dt/1000000;
+        float alpha = Dt/(RC+Dt);
         //Log.d("filter", "alpha: " + alpha);
         float y;
 
