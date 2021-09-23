@@ -39,7 +39,8 @@ public class SensorActivity extends FragmentActivity implements SensorEventListe
 
     // sending log output TAG
     private static final String TAG = "MyActivity";
-    float RC;
+    float Fc = 50;
+    float RC = (float) (1/(2*Math.PI*Fc));
 
     // Front-End components
     TextView introText, ActivityType, CurrentTime;
@@ -73,7 +74,7 @@ public class SensorActivity extends FragmentActivity implements SensorEventListe
     public static int NUMBER_OF_ATTRIBUTES_WITHOUT_CLASS = 12;
     // 20,000 microseconds = 50Hz
     private final int dt = 20000;
-    private final int NUMBER_OF_READINGS = 150;
+    private final int NUMBER_OF_READINGS = 50;
 
     boolean accUpdated = false;
     boolean gyroUpdated = false;
@@ -156,7 +157,7 @@ public class SensorActivity extends FragmentActivity implements SensorEventListe
         instances = new Instances("Bruh", fvWekaAttributes, 5);
         instances.setClassIndex(NUMBER_OF_ATTRIBUTES-1);
         try {
-            cls = (Classifier) weka.core.SerializationHelper.read(getAssets().open("j48Wrist.model"));
+            cls = (Classifier) weka.core.SerializationHelper.read(getAssets().open("j48LefPocket.model"));
         } catch (Exception e) {
             e.printStackTrace();
         }
