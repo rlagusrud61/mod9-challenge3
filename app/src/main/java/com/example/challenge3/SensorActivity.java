@@ -109,7 +109,7 @@ public class SensorActivity extends FragmentActivity implements SensorEventListe
         instances = new Instances("Bruh", fvWekaAttributes, 5);
         instances.setClassIndex(NUMBER_OF_ATTRIBUTES-1);
         try {
-            cls = (Classifier) weka.core.SerializationHelper.read(getAssets().open("RandomTree.model"));
+            cls = (Classifier) weka.core.SerializationHelper.read(getAssets().open("naiveBayes.model"));
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -206,6 +206,7 @@ public class SensorActivity extends FragmentActivity implements SensorEventListe
         //if it reaches 150 readings
         if (sum == NUMBER_OF_READINGS){
             Log.d(TAG, readings.toString());
+            info_text.setText(readings.toString());
             int prediction = getActivityWithMostOccurrence();
             introText1.setText("You are most likely " + activities[prediction]);
             Log.d(TAG, "You are most likely " + activities[prediction]);
