@@ -29,6 +29,8 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import weka.classifiers.Classifier;
+import weka.core.DenseInstance;
+import weka.core.Instance;
 import weka.core.Instances;
 import weka.core.converters.ArffSaver;
 import weka.core.converters.CSVLoader;
@@ -58,6 +60,7 @@ public class SensorActivity extends FragmentActivity implements SensorEventListe
     private Sensor gyroscope;
     private Sensor linear_acceleration;
     private Sensor magnetometer;
+    float Ax,Ay,Az,Lx,Ly,Lz,Mx,My,Mz,Gx,Gy,Gz;
 
     // 20,000 microseconds = 50Hz
     private final int dt = 20000;
@@ -65,8 +68,9 @@ public class SensorActivity extends FragmentActivity implements SensorEventListe
     //List with magnitudes of acceleration
     ArrayList<Double> accel_mag = new ArrayList<Double>();
 
+
     // Cvs file
-    public ArrayList<Attribute> attributes;
+/*    public ArrayList<Attribute> attributes;
     private final String[] attrList = {"Wrist_Ax", "Wrist_Ay", "Wrist_Az", "Wrist_Lx", "Wrist_Ly", "Wrist_Lz", "Wrist_Gx", "Wrist_Gy", "Wrist_Gz", "Wrist_Mx", "Wrist_My", "Wrist_Mz", "Activity"};
     private final String[] activities = {"walking", "standing", "jogging", "sitting","biking","upstairs","downstairs"};
     Instances liveData = null;
@@ -84,7 +88,7 @@ public class SensorActivity extends FragmentActivity implements SensorEventListe
         attributes.add(new Attribute(attList[attList.length-1], activityTemp));
 
         return new Instances(name, attributes, capacity);
-    }
+    }*/
 
     @Override
     public final void onCreate(Bundle savedInstanceState) {
@@ -125,7 +129,7 @@ public class SensorActivity extends FragmentActivity implements SensorEventListe
         sensorManager.registerListener((SensorEventListener) SensorActivity.this, linear_acceleration, dt);
         sensorManager.registerListener((SensorEventListener) SensorActivity.this, magnetometer, dt);
 
-        liveData = createInstances("test", attrList, activities, 50);
+        //liveData = createInstances("test", attrList, activities, 50);
     }
 
     @Override
@@ -143,9 +147,9 @@ public class SensorActivity extends FragmentActivity implements SensorEventListe
         // Getting the accelerometer values
         if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
 
-            float Ax = event.values[0];
-            float Ay = event.values[1];
-            float Az = event.values[2];
+            Ax = event.values[0];
+            Ay = event.values[1];
+            Az = event.values[2];
 
             // Calculating the magnitude of the acceleration
             accel_mag.add(Math.sqrt(Ax * Ax + Ay * Ay + Az * Az) - 9.81);
@@ -155,25 +159,24 @@ public class SensorActivity extends FragmentActivity implements SensorEventListe
 
         // Getting the gyroscope values
         if (event.sensor.getType() == Sensor.TYPE_GYROSCOPE) {
-            float Gx = event.values[0];
-            float Gy = event.values[1];
-            float Gz = event.values[2];
+            Gx = event.values[0];
+            Gy = event.values[1];
+            Gz = event.values[2];
         }
 
         // Getting the linear acceleration values
         if (event.sensor.getType() == Sensor.TYPE_LINEAR_ACCELERATION) {
-            float Lx = event.values[0];
-            float Ly = event.values[1];
-            float Lz = event.values[2];
+            Lx = event.values[0];
+            Ly = event.values[1];
+            Lz = event.values[2];
         }
 
         // Getting the magnetometer values
         if (event.sensor.getType() == Sensor.TYPE_MAGNETIC_FIELD) {
-            float Mx = event.values[0];
-            float My = event.values[1];
-            float Mz = event.values[2];
+            Mx = event.values[0];
+            My = event.values[1];
+            Mz = event.values[2];
         }
-
 
 
     }
@@ -204,6 +207,74 @@ public class SensorActivity extends FragmentActivity implements SensorEventListe
         }
         ActivityCompat.requestPermissions(activity, new String[]{ Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE }, 1);
         return false;
+
+    }
+
+    public void weka(){
+
+        try {
+
+            int NUMBER_OF_ATTRIBUTES = 13;
+            int NUMBER_OF_INSTANCES = 12;
+
+            // Create the attributes
+            Attribute Wrist_Ax = new Attribute("Wrist_Ax");
+            Attribute Wrist_Ay = new Attribute("Wrist_Ay");
+            Attribute Wrist_Az = new Attribute("Wrist_Az");
+            Attribute Wrist_Lx = new Attribute("Wrist_Lx");
+            Attribute Wrist_Ly = new Attribute("Wrist_Ly");
+            Attribute Wrist_Lz = new Attribute("Wrist_Lz");
+            Attribute Wrist_Gx = new Attribute("Wrist_Gx");
+            Attribute Wrist_Gy = new Attribute("Wrist_Gy");
+            Attribute Wrist_Gz = new Attribute("Wrist_Gz");
+            Attribute Wrist_Mx = new Attribute("Wrist_Mx");
+            Attribute Wrist_My = new Attribute("Wrist_My");
+            Attribute Wrist_Mz = new Attribute("Wrist_Mz");
+            Attribute AttributeClass = new Attribute("AttributeClass");
+
+            // Creating a vecotr with 13 positions.
+            ArrayList<Attribute> fvWekaAttributes = new ArrayList<>(NUMBER_OF_ATTRIBUTES);
+
+            // For each position, we add an attribute
+            fvWekaAttributes.add(Wrist_Ax);
+            fvWekaAttributes.add(Wrist_Ay);
+            fvWekaAttributes.add(Wrist_Az);
+            fvWekaAttributes.add(Wrist_Lx);
+            fvWekaAttributes.add(Wrist_Ly);
+            fvWekaAttributes.add(Wrist_Lz);
+            fvWekaAttributes.add(Wrist_Gx);
+            fvWekaAttributes.add(Wrist_Gy);
+            fvWekaAttributes.add(Wrist_Gz);
+            fvWekaAttributes.add(Wrist_Mx);
+            fvWekaAttributes.add(Wrist_My);
+            fvWekaAttributes.add(Wrist_Mz);
+            fvWekaAttributes.add(AttributeClass);
+
+            Instances trainingSet = new Instances("Rel", fvWekaAttributes, NUMBER_OF_INSTANCES);
+            trainingSet.setClassIndex(12);
+
+            //Fill in the training set with one instance
+            Instance instance = new DenseInstance(NUMBER_OF_INSTANCES);
+            // Do we need to add the timestamp?
+            instance.setValue(Wrist_Ax, Ax);
+            instance.setValue(Wrist_Ay, Ay);
+            instance.setValue(Wrist_Az, Az);
+            instance.setValue(Wrist_Lx, Lx);
+            instance.setValue(Wrist_Ly, Ly);
+            instance.setValue(Wrist_Lz, Lz);
+            instance.setValue(Wrist_Gx, Gx);
+            instance.setValue(Wrist_Gy, Gy);
+            instance.setValue(Wrist_Gz, Gz);
+            instance.setValue(Wrist_Mx, Mx);
+            instance.setValue(Wrist_My, My);
+            instance.setValue(Wrist_Mz, Mz);
+
+            trainingSet.add(instance);
+            Classifier cls = (Classifier) weka.core.SerializationHelper.read(getAssets().open("RandomTree.model"));
+            double prediction = cls.classifyInstance(trainingSet.instance(0));
+        } catch (Exception e) {
+
+        }
 
     }
 
