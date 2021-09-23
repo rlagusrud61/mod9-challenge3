@@ -22,6 +22,8 @@ import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.FragmentActivity;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 import weka.classifiers.Classifier;
 import weka.core.DenseInstance;
@@ -29,6 +31,8 @@ import weka.core.Instance;
 import weka.core.Instances;
 
 import weka.core.Attribute;
+import weka.filters.unsupervised.attribute.Add;
+import weka.gui.beans.ClassifierBeanInfo;
 
 
 public class SensorActivity extends FragmentActivity implements SensorEventListener, View.OnClickListener {
@@ -58,7 +62,7 @@ public class SensorActivity extends FragmentActivity implements SensorEventListe
     private Sensor linear_acceleration;
     private Sensor magnetometer;
     float Ax,Ay,Az,Lx,Ly,Lz,Mx,My,Mz,Gx,Gy,Gz;
-    ArrayList<Attribute> fvWekaAttributes = new ArrayList<>();
+    ArrayList<Attribute> fvWekaAttributes;
     Instances trainingSet;
     boolean aFirst = true;
     boolean gFirst = true;
@@ -69,12 +73,15 @@ public class SensorActivity extends FragmentActivity implements SensorEventListe
     public static int NUMBER_OF_ATTRIBUTES_WITHOUT_CLASS = 12;
     // 20,000 microseconds = 50Hz
     private final int dt = 20000;
-    private final float fc = 1;
-    private final float RC = (float) (1/(2*Math.PI*fc));
+    private final int NUMBER_OF_READINGS = 150;
 
-    //List with magnitudes of acceleration
-    ArrayList<Double> accel_mag = new ArrayList<Double>();
-    Instances instances;
+    boolean accUpdated = false;
+    boolean gyroUpdated = false;
+    boolean linearaccUpdated = false;
+    boolean magnetoUpdated = false;
+
+    HashMap<Integer,Integer> readings;
+    Classifier cls;
 
     public float lowPass(float x,  float lastY, float RC, int dt, boolean first){ //simple digital RC filter
         float alpha = dt/(RC+dt);
@@ -139,8 +146,26 @@ public class SensorActivity extends FragmentActivity implements SensorEventListe
         sensorManager.registerListener((SensorEventListener) SensorActivity.this, gyroscope, dt);
         sensorManager.registerListener((SensorEventListener) SensorActivity.this, linear_acceleration, dt);
         sensorManager.registerListener((SensorEventListener) SensorActivity.this, magnetometer, dt);
+
         createTrainingSet();
-        run();
+        initiateReadings();
+
+        instances = new Instances("Bruh", fvWekaAttributes, 5);
+        instances.setClassIndex(NUMBER_OF_ATTRIBUTES-1);
+        try {
+            cls = (Classifier) weka.core.SerializationHelper.read(getAssets().open("naiveBayes.model"));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+
+    }
+
+    public void initiateReadings(){
+        readings = new HashMap<>();
+        for (int i = 0 ; i < 7 ; i ++){
+            readings.put(i, 0);
+        }
     }
 
     @Override
@@ -272,33 +297,58 @@ public class SensorActivity extends FragmentActivity implements SensorEventListe
 
     }
 
-    public void run(){
-        for (int i = 0 ; i < 5 ; i ++ ){
+            if (accUpdated && magnetoUpdated && linearaccUpdated && gyroUpdated){
             classifyInstance();
+            accUpdated = false;
+            magnetoUpdated = false;
+            linearaccUpdated = false;
+            gyroUpdated = false;
         }
+            getPredictedActivity();
     }
 
+
+    public int getActivityWithMostOccurrence(){
+        // Get the activity with the most occurrence
+        int maxPredictionValue = 0;
+        int maxPredictionKey = 0;
+        for (Map.Entry<Integer, Integer> entry : readings.entrySet()){
+            if (maxPredictionValue < entry.getValue())
+            {
+                Log.d(TAG, "Entry key  : " + entry.getKey() + " value :" + entry.getValue());
+                Log.d(TAG, "New maxPrediction = " + maxPredictionValue);
+                maxPredictionValue = entry.getValue();
+                maxPredictionKey = entry.getKey();
+            }
+        }return maxPredictionKey;
+    }
+
+    public void getPredictedActivity(){
+        int sum = 0;
+        for (int v: readings.values()){
+            sum += v;
+        }
+
+        //if it reaches 150 readings
+        if (sum == NUMBER_OF_READINGS){
+            Log.d(TAG, readings.toString());
+            info_text.setText(readings.toString());
+            int prediction = getActivityWithMostOccurrence();
+            introText1.setText("You are most likely " + activities[prediction]);
+            Log.d(TAG, "You are most likely " + activities[prediction]);
+            readings.clear();
+        }
+    }
 
     @Override
     public void onAccuracyChanged(Sensor sensor, int i) {
 
     }
 
-    public boolean checkPermissions(Activity activity){
-
-        // Permissions from reading and loading accelerometer data into file
-        Boolean readPermission = ActivityCompat.checkSelfPermission(activity, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED;
-        Boolean writePermission = ActivityCompat.checkSelfPermission(activity, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED;
-
-        if (readPermission & writePermission){
-            return true;
-        }
-        ActivityCompat.requestPermissions(activity, new String[]{ Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE }, 1);
-        return false;
-    }
 
     public void createTrainingSet(){
 
+        Log.d(TAG, "Created training set...");
         // Create the attributes
         Attribute Wrist_Ax = new Attribute("Wrist_Ax");
         Attribute Wrist_Ay = new Attribute("Wrist_Ay");
@@ -312,7 +362,12 @@ public class SensorActivity extends FragmentActivity implements SensorEventListe
         Attribute Wrist_Mx = new Attribute("Wrist_Mx");
         Attribute Wrist_My = new Attribute("Wrist_My");
         Attribute Wrist_Mz = new Attribute("Wrist_Mz");
-        Attribute Activity = new Attribute("Activity");
+
+        ArrayList<String> acList = new ArrayList<>();
+        for(int i=0; i<activities.length; i++) {
+            acList.add(activities[i]);
+        }
+        Attribute Activity = new Attribute("Activity",acList);
 
         // Creating a vector with 13 positions.
         fvWekaAttributes = new ArrayList<>(NUMBER_OF_ATTRIBUTES);
@@ -332,40 +387,41 @@ public class SensorActivity extends FragmentActivity implements SensorEventListe
         fvWekaAttributes.add(Wrist_Mz);
         fvWekaAttributes.add(Activity);
 
-        trainingSet = new Instances("Rel", fvWekaAttributes, 50);
-        trainingSet.setClassIndex(12);
 
     }
-    public double classifyInstance(){
+    public void classifyInstance(){
         int prediction = 0;
         try {
 
+            double[] attrValues = new double[NUMBER_OF_ATTRIBUTES-1];
+            attrValues[0] = Ax;
+            attrValues[1] = Ay;
+            attrValues[2] = Az;
+            attrValues[3] = Lx;
+            attrValues[4] = Ly;
+            attrValues[5] = Lz;
+            attrValues[6] = Gx;
+            attrValues[7] = Gy;
+            attrValues[8] = Gz;
+            attrValues[9] = Mx;
+            attrValues[10] = My;
+            attrValues[11] = Mz;
+
             //Fill in the training set with one instance
-            Instance instance = new DenseInstance(NUMBER_OF_ATTRIBUTES);
-            // Do we need to add the timestamp?
-            instance.setValue(fvWekaAttributes.get(0), Ax);
-            instance.setValue(fvWekaAttributes.get(1), Ay);
-            instance.setValue(fvWekaAttributes.get(2), Az);
-            instance.setValue(fvWekaAttributes.get(3), Lx);
-            instance.setValue(fvWekaAttributes.get(4), Ly);
-            instance.setValue(fvWekaAttributes.get(5), Lz);
-            instance.setValue(fvWekaAttributes.get(6), Gx);
-            instance.setValue(fvWekaAttributes.get(7), Gy);
-            instance.setValue(fvWekaAttributes.get(8), Gz);
-            instance.setValue(fvWekaAttributes.get(9), Mx);
-            instance.setValue(fvWekaAttributes.get(10), My);
-            instance.setValue(fvWekaAttributes.get(11), Mz);
+            instance = new DenseInstance(1, attrValues);
+            instance.setDataset(instances);
 
-            trainingSet.add(instance);
-            Classifier cls = (Classifier) weka.core.SerializationHelper.read(getAssets().open("RandomTree.model"));
-            prediction = (int)cls.classifyInstance(trainingSet.instance(0));
-            Log.d(TAG, "Prediction : " + prediction);
-            Log.d(TAG, "istrainingset:" + trainingSet);
 
-            introText.setText(activity[prediction]);
+            // Get the prediction in int
+            prediction = (int)cls.classifyInstance(instance);
+
+            // increase the count in the hashmap after classifying as this <activity>
+            // might have nullpointer whoops
+            int count = readings.containsKey(prediction) ? readings.get(prediction) : 0;
+            readings.put(prediction, count + 1);
 
         } catch (Exception e) {
-
+            e.printStackTrace();
         }
         return prediction;
     }
