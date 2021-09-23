@@ -247,7 +247,7 @@ public class SensorActivity extends FragmentActivity implements SensorEventListe
                 Az = lowPass(event.values[2],Az,RC,dt,false);
                 //Log.d("filter", "x: "+ x + " y: " + Ax);
             }
-
+        accUpdated = true;
 
         }
 
@@ -264,6 +264,7 @@ public class SensorActivity extends FragmentActivity implements SensorEventListe
                 Gy = lowPass(event.values[1],Gy,RC,dt,false);
                 Gz = lowPass(event.values[2],Gz,RC,dt,false);
             }
+            gyroUpdated = true;
         }
 
         // Getting the linear acceleration values
@@ -279,6 +280,7 @@ public class SensorActivity extends FragmentActivity implements SensorEventListe
                 Ly = lowPass(event.values[1],Ly,RC,dt,false);
                 Lz = lowPass(event.values[2],Lz,RC,dt,false);
             }
+            linearaccUpdated = true;
         }
 
         // Getting the magnetometer values
@@ -296,6 +298,7 @@ public class SensorActivity extends FragmentActivity implements SensorEventListe
                 Mz = lowPass(event.values[2],Mz,RC,dt,false);
                 //Log.d("filter", "m: " + Mz + " original: " + event.values[2]);
             }
+            magnetoUpdated = true;
         }
 
         if (accUpdated && magnetoUpdated && linearaccUpdated && gyroUpdated){
