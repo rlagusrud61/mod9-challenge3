@@ -47,6 +47,8 @@ public class SensorActivity extends FragmentActivity implements SensorEventListe
     boolean inHistory = false;
     boolean atHomeScreen = true;
 
+    private final String[] activity = {"walking", "standing", "jogging", "sitting","biking","upstairs","downstairs"};
+
     MediaPlayer biking, going_upstairs, going_downstairs, jogging, sitting, standing, walking;
 
     // Accelerometer, Gyroscope, Linear_acceleration, Magnetometer
@@ -361,7 +363,7 @@ public class SensorActivity extends FragmentActivity implements SensorEventListe
             Log.d(TAG, "Prediction : " + prediction);
             Log.d(TAG, "istrainingset:" + trainingSet);
 
-            //introText1.setText(activities[prediction]);
+            introText.setText(activity[prediction]);
 
         } catch (Exception e) {
 
