@@ -53,9 +53,11 @@ public class SensorActivity extends FragmentActivity implements SensorEventListe
     boolean inHistory = false;
     boolean atHomeScreen = true;
 
+    String current_state;
+
     private final String[] activity = {"walking", "standing", "jogging", "sitting","biking","upstairs","downstairs"};
 
-    MediaPlayer biking, going_upstairs, going_downstairs, jogging, sitting, standing, walking;
+    MediaPlayer biking, upstairs, downstairs, jogging, sitting, standing, walking;
 
     // Accelerometer, Gyroscope, Linear_acceleration, Magnetometer
     private SensorManager sensorManager;
@@ -119,8 +121,8 @@ public class SensorActivity extends FragmentActivity implements SensorEventListe
         history.setOnClickListener(this);
 
         biking = MediaPlayer.create(this,R.raw.biking);
-        going_upstairs = MediaPlayer.create(this,R.raw.going_upstairs);
-        going_downstairs = MediaPlayer.create(this,R.raw.going_downstairs);
+        upstairs = MediaPlayer.create(this,R.raw.going_upstairs);
+        downstairs = MediaPlayer.create(this,R.raw.going_downstairs);
         jogging = MediaPlayer.create(this,R.raw.jogging);
         sitting = MediaPlayer.create(this,R.raw.sitting);
         standing = MediaPlayer.create(this,R.raw.standing);
@@ -182,16 +184,6 @@ public class SensorActivity extends FragmentActivity implements SensorEventListe
            atHomeScreen = false;
        }
 
-        if (view.equals(activities)) {
-            /*SoundPool sounds;
-            int sExplosion;
-            //declare variables
-            sounds = new SoundPool(10, AudioManager.STREAM_MUSIC,0);
-            sExplosion = sounds.load(this, R.raw.test_sound, 1);
-            sounds.play(sExplosion, 10.0f, 10.0f, 0, 0, 1.5f);*/
-            jogging.start();
-        }
-
        if (view.equals(history)){
 
            if (inHistory){
@@ -219,10 +211,42 @@ public class SensorActivity extends FragmentActivity implements SensorEventListe
 
     public void ChangePictureAndSound(){
 
-        // walking, standing, jogging, sitting, biking, going upstairs, going downstairs
+        switch(current_state)
+        {
+            case "walking":
+                activities.setImageResource(R.drawable.walking);
+                walking.start();
+                break;
+            case "standing":
+                activities.setImageResource(R.drawable.standing);
+                standing.start();
+                break;
+            case "jogging":
+                activities.setImageResource(R.drawable.jogging);
+                jogging.start();
+                break;
+            case "sitting":
+                activities.setImageResource(R.drawable.sitting);
+                sitting.start();
+                break;
+            case "biking":
+                activities.setImageResource(R.drawable.biking);
+                biking.start();
+                break;
+            case "upstairs":
+                activities.setImageResource(R.drawable.upstairs);
+                upstairs.start();
+                break;
+            case "downstairs":
+                activities.setImageResource(R.drawable.downstairs);
+                downstairs.start();
+                break;
+            default:
+                System.out.println("No activity has been recorded");
+        }
 
-        boolean running = false;
-        if (running){
+
+        if (current_state == ){
             activities.setImageResource(R.drawable.play);
         }
 
@@ -337,12 +361,13 @@ public class SensorActivity extends FragmentActivity implements SensorEventListe
 
         //if it reaches 150 readings
         if (sum == NUMBER_OF_READINGS){
-            Log.d(TAG,"FATIMA");
             Log.d(TAG, readings.toString());
             introText.setText(readings.toString());
             int prediction = getActivityWithMostOccurrence();
-            introText.setText("You are most likely " + activity[prediction]);
-            Log.d(TAG, "You are most likely " + activity[prediction]);
+            current_state = activity[prediction];
+            ChangePictureAndSound();
+            introText.setText("You are most likely " + current_state);
+            Log.d(TAG, "You are most likely " + current_state);
             readings.clear();
         }
     }
