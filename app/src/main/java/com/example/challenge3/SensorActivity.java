@@ -76,16 +76,16 @@ public class SensorActivity extends FragmentActivity implements SensorEventListe
     ArrayList<Double> accel_mag = new ArrayList<Double>();
     Instances instances;
 
-    public float lowPass(float x,  float lastY, float RC, int dt, boolean first){
+    public float lowPass(float x,  float lastY, float RC, int dt, boolean first){ //simple digital RC filter
         float alpha = dt/(RC+dt);
         //Log.d("filter", "alpha: " + alpha);
         float y;
 
-        if(first){
+        if(first){ // on first cycle there wont be a y-1 so multiply x with alpha
             return alpha*x;
         }
         else {
-            y = alpha * x + (1 - alpha) * lastY;
+            y = alpha * x + (1 - alpha) * lastY; //filter equation
             return y;
         }
     }
