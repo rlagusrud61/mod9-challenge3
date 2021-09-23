@@ -196,7 +196,6 @@ public class SensorActivity extends FragmentActivity implements SensorEventListe
             activities.setImageResource(R.drawable.play);
         }
 
-
     }
 
 
