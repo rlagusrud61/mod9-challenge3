@@ -235,7 +235,12 @@ public class SensorActivity extends FragmentActivity implements SensorEventListe
         Attribute Wrist_Mx = new Attribute("Wrist_Mx");
         Attribute Wrist_My = new Attribute("Wrist_My");
         Attribute Wrist_Mz = new Attribute("Wrist_Mz");
-        Attribute Activity = new Attribute("Activity");
+
+        ArrayList<String> acList = new ArrayList<>();
+        for(int i=0; i<activities.length; i++) {
+            acList.add(activities[i]);
+        }
+        Attribute Activity = new Attribute("Activity",acList);
 
         // Creating a vector with 13 positions.
         fvWekaAttributes = new ArrayList<>(NUMBER_OF_ATTRIBUTES);
