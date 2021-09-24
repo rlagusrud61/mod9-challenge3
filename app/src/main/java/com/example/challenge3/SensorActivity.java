@@ -140,13 +140,6 @@ public class SensorActivity extends FragmentActivity implements SensorEventListe
         String[] events = {"Jogging","Jogging","Walking","Going up the stairs","Sitting","Walking","Standing"};
         String[] times = {"8:45 pm","9:00 am","7:34 pm","6:32 am","5:76 am","5:00 am","7:34 pm"};
 
-        ArrayList<Event> eventsAL = new ArrayList<>();
-
-        for(int i = 0; i<events.length;i++){
-            Event event = new Event(events[i],times[i]);
-            eventsAL.add(event);
-        }
-
         // Recycler View
         initData();
         initRecyclerView();
