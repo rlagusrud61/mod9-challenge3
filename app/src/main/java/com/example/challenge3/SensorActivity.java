@@ -69,6 +69,7 @@ public class SensorActivity extends FragmentActivity implements SensorEventListe
     String current_state;
 
     private final String[] activity = {"walking", "standing", "jogging", "sitting","biking","upstairs","downstairs"};
+    private final double[] activityWeights = {2, 1, 1, 1, 1, 1, 0.5};
 
     MediaPlayer biking, upstairs, downstairs, jogging, sitting, standing, walking;
 
@@ -165,6 +166,11 @@ public class SensorActivity extends FragmentActivity implements SensorEventListe
         magnetometer = sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
 
         createTrainingSet();
+        try {
+            cls = (Classifier) weka.core.SerializationHelper.read(getAssets().open("randomForestRightPocket.model"));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     private void initData() {
@@ -205,11 +211,7 @@ public class SensorActivity extends FragmentActivity implements SensorEventListe
 
            instances = new Instances("Bruh", fvWekaAttributes, 5);
            instances.setClassIndex(NUMBER_OF_ATTRIBUTES-1);
-           try {
-               cls = (Classifier) weka.core.SerializationHelper.read(getAssets().open("randomForestRightPocket.model"));
-           } catch (Exception e) {
-               e.printStackTrace();
-           }
+
 
            sensorManager.registerListener((SensorEventListener) SensorActivity.this, accelerometer, dt);
            sensorManager.registerListener((SensorEventListener) SensorActivity.this, gyroscope, dt);
@@ -276,6 +278,7 @@ public class SensorActivity extends FragmentActivity implements SensorEventListe
             default:
                 System.out.println("No activity has been recorded");
         }
+
 
     }
 
@@ -364,14 +367,19 @@ public class SensorActivity extends FragmentActivity implements SensorEventListe
 
     public int getActivityWithMostOccurrence(){
         // Get the activity with the most occurrence
-        int maxPredictionValue = 0;
+        double maxPredictionValue = 0;
+        double weightedValue = 0;
         int maxPredictionKey = 0;
+        //Log.d(TAG, "prediction map: " + readings);
         for (Map.Entry<Integer, Integer> entry : readings.entrySet()){
+            weightedValue = (double) entry.getValue() * activityWeights[entry.getKey()];
+            Log.d(TAG, "entry: " + entry.getKey() + " weighted value: " + weightedValue);
             if (maxPredictionValue < entry.getValue())
             {
-                Log.d(TAG, "Entry key  : " + entry.getKey() + " value :" + entry.getValue());
-                Log.d(TAG, "New maxPrediction = " + maxPredictionValue);
-                maxPredictionValue = entry.getValue();
+                //Log.d(TAG, "Entry key  : " + entry.getKey() + " value :" + entry.getValue());
+                //Log.d(TAG, "New maxPrediction = " + maxPredictionValue);
+
+                maxPredictionValue = weightedValue;
                 maxPredictionKey = entry.getKey();
             }
         }return maxPredictionKey;
@@ -384,16 +392,16 @@ public class SensorActivity extends FragmentActivity implements SensorEventListe
             sum += v;
         }
 
-        Log.d(TAG, "Old activity: " + oldPredictionActivity);
+        //Log.d(TAG, "Old activity: " + oldPredictionActivity);
         //if it reaches 150 readings
         if (sum == NUMBER_OF_READINGS){
             int prediction = getActivityWithMostOccurrence();
             current_state = activity[prediction];
-            if (!oldPredictionActivity.equals(current_state)) {
-                Log.d(TAG, oldPredictionActivity + " is different from " + current_state);
+            //if (!oldPredictionActivity.equals(current_state)) {
+                //Log.d(TAG, oldPredictionActivity + " is different from " + current_state);
                 connectServer(current_state);
                 oldPredictionActivity = current_state;
-                Log.d(TAG, "The new oldPredictionActivity variable - " + oldPredictionActivity);
+                //Log.d(TAG, "The new oldPredictionActivity variable - " + oldPredictionActivity);
                 ChangePictureAndSound();
                 introText.setText("You are most likely " + activity[prediction]);
 
@@ -430,7 +438,7 @@ public class SensorActivity extends FragmentActivity implements SensorEventListe
                 }
 
 
-            }
+            //}
             readings.clear();
         }
     }
