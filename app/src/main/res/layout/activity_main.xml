@@ -23,7 +23,9 @@
             android:layout_height="match_parent"
             android:orientation="vertical">
 
-            // Text that says (Press the image to start/ You are)
+
+            <!-- Text that says (Press the image to start/ You are) -->
+
             <TextView
                 android:id="@+id/introText"
                 android:layout_width="wrap_content"
@@ -38,7 +40,7 @@
                 android:textSize="20sp"
                 android:textColor="#141414" />
 
-            // This image button will display all the activities
+            <!-- This image button will display all the activities -->
             <ImageButton
                 android:id="@+id/activities"
                 android:layout_width="175dp"
@@ -60,7 +62,7 @@
                 tools:listitem="@layout/list_item" />
 
 
-            // History tab and home button
+            <!-- // History tab and home button -->
             <ImageButton
                 android:id="@+id/history"
                 android:layout_width="105dp"
