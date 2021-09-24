@@ -374,12 +374,13 @@ public class SensorActivity extends FragmentActivity implements SensorEventListe
         //if it reaches 150 readings
         if (sum == NUMBER_OF_READINGS){
             Log.d(TAG, readings.toString());
-            introText.setText(readings.toString());
             int prediction = getActivityWithMostOccurrence();
-            current_state = activity[prediction];
-            ChangePictureAndSound();
-            introText.setText("You are most likely " + current_state);
-            Log.d(TAG, "You are most likely " + current_state);
+            if (current_state != activity[prediction]) {
+                current_state = activity[prediction];
+                ChangePictureAndSound();
+                introText.setText("You are most likely " + current_state);
+                Log.d(TAG, "You are most likely " + current_state);
+            }
             readings.clear();
         }
     }
