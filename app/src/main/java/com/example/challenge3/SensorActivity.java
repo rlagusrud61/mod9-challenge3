@@ -397,7 +397,7 @@ public class SensorActivity extends FragmentActivity implements SensorEventListe
         if (sum == NUMBER_OF_READINGS){
             int prediction = getActivityWithMostOccurrence();
             current_state = activity[prediction];
-            //if (!oldPredictionActivity.equals(current_state)) {
+            if (!oldPredictionActivity.equals(current_state)) {
                 //Log.d(TAG, oldPredictionActivity + " is different from " + current_state);
                 connectServer(current_state);
                 oldPredictionActivity = current_state;
@@ -410,38 +410,37 @@ public class SensorActivity extends FragmentActivity implements SensorEventListe
 
                 String current_time = formatter.format(date);
 
-                switch(oldPredictionActivity)
-                {
+                switch (oldPredictionActivity) {
                     case "walking":
-                        activityList.add(new Model(R.drawable.walking, current_state,current_time , "_______________________________________"));
+                        activityList.add(new Model(R.drawable.walking, current_state, current_time, "_______________________________________"));
                         break;
                     case "standing":
-                        activityList.add(new Model(R.drawable.standing, current_state,current_time , "_______________________________________"));
+                        activityList.add(new Model(R.drawable.standing, current_state, current_time, "_______________________________________"));
                         break;
                     case "jogging":
-                        activityList.add(new Model(R.drawable.jogging, current_state,current_time , "_______________________________________"));
+                        activityList.add(new Model(R.drawable.jogging, current_state, current_time, "_______________________________________"));
                         break;
                     case "sitting":
-                        activityList.add(new Model(R.drawable.sitting, current_state,current_time , "_______________________________________"));
+                        activityList.add(new Model(R.drawable.sitting, current_state, current_time, "_______________________________________"));
                         break;
                     case "biking":
-                        activityList.add(new Model(R.drawable.biking, current_state,current_time , "_______________________________________"));
+                        activityList.add(new Model(R.drawable.biking, current_state, current_time, "_______________________________________"));
                         break;
                     case "upstairs":
-                        activityList.add(new Model(R.drawable.upstairs, current_state,current_time , "_______________________________________"));
+                        activityList.add(new Model(R.drawable.upstairs, current_state, current_time, "_______________________________________"));
                         break;
                     case "downstairs":
-                        activityList.add(new Model(R.drawable.downstairs, current_state,current_time , "_______________________________________"));
+                        activityList.add(new Model(R.drawable.downstairs, current_state, current_time, "_______________________________________"));
                         break;
                     default:
-                        activityList.add(new Model(R.drawable.standing, "standing",current_time , "_______________________________________"));
+                        activityList.add(new Model(R.drawable.standing, "standing", current_time, "_______________________________________"));
                 }
 
-
+            }
             //}
             readings.clear();
-        }
-    }
+
+    }}
 
     @Override
     public void onAccuracyChanged(Sensor sensor, int i) {
@@ -575,4 +574,4 @@ public class SensorActivity extends FragmentActivity implements SensorEventListe
         }
 
 
-};
+}
