@@ -23,11 +23,19 @@ import androidx.fragment.app.FragmentActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.MediaType;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
 import weka.classifiers.Classifier;
 import weka.core.DenseInstance;
 import weka.core.Instance;
@@ -83,6 +91,9 @@ public class SensorActivity extends FragmentActivity implements SensorEventListe
     boolean linearaccUpdated = false;
     boolean magnetoUpdated = false;
     boolean running = true;
+
+    //for connection to server
+    String oldPredictionActivity = "";
 
     Instances instances;
     Instance instance;
@@ -365,21 +376,28 @@ public class SensorActivity extends FragmentActivity implements SensorEventListe
         }return maxPredictionKey;
     }
 
+
     public void getPredictedActivity(){
         int sum = 0;
         for (int v: readings.values()){
             sum += v;
         }
 
+        Log.d(TAG, "Old activity: " + oldPredictionActivity);
         //if it reaches 150 readings
         if (sum == NUMBER_OF_READINGS){
             Log.d(TAG, readings.toString());
             int prediction = getActivityWithMostOccurrence();
-            if (current_state != activity[prediction]) {
-                current_state = activity[prediction];
+            String newPredictionActivity = activity[prediction];
+            Log.d(TAG, "New activity: " + newPredictionActivity);
+            if (!oldPredictionActivity.equals(newPredictionActivity)) {
+                Log.d(TAG, oldPredictionActivity + " is different from " + newPredictionActivity);
+                connectServer(newPredictionActivity);
+                oldPredictionActivity = newPredictionActivity;
+                Log.d(TAG, "The new oldPredictionActivity variable - " + oldPredictionActivity);
                 ChangePictureAndSound();
-                introText.setText("You are most likely " + current_state);
-                Log.d(TAG, "You are most likely " + current_state);
+                introText.setText("You are most likely " + activity[prediction]);
+                Log.d(TAG, "You are most likely " + activity[prediction]);
             }
             readings.clear();
         }
@@ -470,5 +488,51 @@ public class SensorActivity extends FragmentActivity implements SensorEventListe
             e.printStackTrace();
         }
     }
+
+
+        //connection to flask server - this method is called by the connect button
+        public void connectServer(String textBody){
+
+//        URL url = new URL ("https://reqres.in/api/users");
+//        HttpURLConnection con = (HttpURLConnection)url.openConnection();
+//        con.setRequestMethod("POST");
+
+            String ipv4Address = "130.89.209.202"; //130.89.209.202
+            String portNumber = "5000";
+
+            String postUrl= "http://" + ipv4Address + ":" + portNumber;
+
+            String postBodyText= textBody;
+            MediaType mediaType = MediaType.parse("text/plain; charset=utf-8");
+            RequestBody postBody = RequestBody.create(mediaType, postBodyText);
+
+            postRequest(postUrl, postBody);
+        }
+//
+        //called by connect server to post the request
+        void postRequest(String postUrl, RequestBody postBody) {
+
+            OkHttpClient client = new OkHttpClient();
+
+            Request request = new Request.Builder()
+                    .url(postUrl)
+                    .post(postBody)
+                    .build();
+
+            client.newCall(request).enqueue(new Callback() {
+                @Override
+                public void onFailure(Call call, IOException e) {
+                    call.cancel();
+                    Log.d(TAG, "Call was cancelled");
+                }
+
+                @Override
+                public void onResponse(Call call, final Response response) throws IOException {
+
+                    Log.d(TAG, "Call successful");
+                }
+            });
+        }
+
 
 };
