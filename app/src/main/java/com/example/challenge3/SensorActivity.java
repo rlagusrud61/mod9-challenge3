@@ -81,7 +81,6 @@ public class SensorActivity extends FragmentActivity implements SensorEventListe
     boolean mFirst = true;
 
     public static int NUMBER_OF_ATTRIBUTES = 13;
-    public static int NUMBER_OF_ATTRIBUTES_WITHOUT_CLASS = 12;
     // 20,000 microseconds = 50Hz
     private final int dt = 20000;
     private final int NUMBER_OF_READINGS = 150;
@@ -159,6 +158,7 @@ public class SensorActivity extends FragmentActivity implements SensorEventListe
         linear_acceleration = sensorManager.getDefaultSensor(Sensor.TYPE_LINEAR_ACCELERATION);
         magnetometer = sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
 
+        createTrainingSet();
     }
 
     private void initRecyclerView() {
@@ -183,12 +183,10 @@ public class SensorActivity extends FragmentActivity implements SensorEventListe
     }
 
     public void initiateReadings(){
-        if (running) {
             readings = new HashMap<>();
             for (int i = 0; i < 7; i++) {
                 readings.put(i, 0);
             }
-        }
     }
 
     @Override
@@ -198,7 +196,6 @@ public class SensorActivity extends FragmentActivity implements SensorEventListe
        if (view.equals(activities) && atHomeScreen){
            introText.setText("You are");
            atHomeScreen = false;
-           createTrainingSet();
            initiateReadings();
            running = true;
 
@@ -275,7 +272,6 @@ public class SensorActivity extends FragmentActivity implements SensorEventListe
             default:
                 System.out.println("No activity has been recorded");
         }
-
     }
 
 
@@ -386,14 +382,12 @@ public class SensorActivity extends FragmentActivity implements SensorEventListe
         Log.d(TAG, "Old activity: " + oldPredictionActivity);
         //if it reaches 150 readings
         if (sum == NUMBER_OF_READINGS){
-            Log.d(TAG, readings.toString());
             int prediction = getActivityWithMostOccurrence();
-            String newPredictionActivity = activity[prediction];
-            Log.d(TAG, "New activity: " + newPredictionActivity);
-            if (!oldPredictionActivity.equals(newPredictionActivity)) {
-                Log.d(TAG, oldPredictionActivity + " is different from " + newPredictionActivity);
-                connectServer(newPredictionActivity);
-                oldPredictionActivity = newPredictionActivity;
+            current_state = activity[prediction];
+            if (!oldPredictionActivity.equals(current_state)) {
+                Log.d(TAG, oldPredictionActivity + " is different from " + current_state);
+                connectServer(current_state);
+                oldPredictionActivity = current_state;
                 Log.d(TAG, "The new oldPredictionActivity variable - " + oldPredictionActivity);
                 ChangePictureAndSound();
                 introText.setText("You are most likely " + activity[prediction]);
@@ -410,8 +404,6 @@ public class SensorActivity extends FragmentActivity implements SensorEventListe
 
 
     public void createTrainingSet(){
-
-        if (running) {
 
             Log.d(TAG, "Created training set...");
             // Create the attributes
@@ -451,7 +443,6 @@ public class SensorActivity extends FragmentActivity implements SensorEventListe
             fvWekaAttributes.add(Wrist_My);
             fvWekaAttributes.add(Wrist_Mz);
             fvWekaAttributes.add(Activity);
-        }
     }
     public void classifyInstance(){
         int prediction = 0;

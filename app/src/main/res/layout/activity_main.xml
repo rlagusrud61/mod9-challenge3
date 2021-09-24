@@ -22,9 +22,7 @@
             android:layout_height="match_parent"
             android:orientation="vertical">
 
-
-            <!-- Text that says (Press the image to start/ You are) -->
-
+            // Text that says (Press the image to start/ You are)
             <TextView
                 android:id="@+id/introText"
                 android:layout_width="wrap_content"
@@ -39,7 +37,7 @@
                 android:textSize="20sp"
                 android:textColor="#141414" />
 
-            <!-- This image button will display all the activities -->
+            // This image button will display all the activities
             <ImageButton
                 android:id="@+id/activities"
                 android:layout_width="175dp"
@@ -59,21 +57,33 @@
                 android:id="@+id/recyclerView" >
             </androidx.recyclerview.widget.RecyclerView>
 
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_gravity="bottom">
 
-            <!-- // History tab and home button -->
-            <ImageButton
-                android:id="@+id/history"
-                android:layout_width="105dp"
-                android:layout_height="75dp"
-                android:layout_gravity="center"
-                android:adjustViewBounds="true"
-                android:cropToPadding="false"
-                android:scaleType="fitCenter"
-                android:background="@android:color/transparent"
-                android:src="@drawable/history"/>
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:orientation="vertical">
 
+                <ImageButton
+                    android:id="@+id/history"
+                    android:layout_width="105dp"
+                    android:layout_height="75dp"
+                    android:layout_centerInParent="true"
+                    android:layout_centerHorizontal="true"
+                    android:adjustViewBounds="true"
+                    android:background="@android:color/transparent"
+                    android:cropToPadding="false"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/history" />
+            </LinearLayout>
+
+
+
+        </RelativeLayout>
         </LinearLayout>
-
     </LinearLayout>
-
 </LinearLayout>
