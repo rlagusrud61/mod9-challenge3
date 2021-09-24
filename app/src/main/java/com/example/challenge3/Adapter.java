@@ -40,7 +40,7 @@ public class Adapter extends RecyclerView.Adapter<Adapter.ViewHolder> {
 
     @Override
     public int getItemCount() {
-        return 0;
+        return activityList.size();
     }
 
     public class ViewHolder extends RecyclerView.ViewHolder {
@@ -48,7 +48,7 @@ public class Adapter extends RecyclerView.Adapter<Adapter.ViewHolder> {
         private TextView ActivityType, CurrentTime, Divider;
         private ImageView imageview1;
 
-        public ViewHolder(@NonNull @NotNull View itemView) {
+        public ViewHolder(@NonNull View itemView) {
             super(itemView);
 
             imageview1 = itemView.findViewById(R.id.imageview1);

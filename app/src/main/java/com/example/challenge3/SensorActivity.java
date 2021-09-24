@@ -24,7 +24,11 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -43,6 +47,7 @@ import weka.core.Instances;
 
 import weka.core.Attribute;
 import weka.filters.unsupervised.attribute.Add;
+import weka.gui.SimpleDateFormatEditor;
 import weka.gui.beans.ClassifierBeanInfo;
 
 
@@ -81,6 +86,7 @@ public class SensorActivity extends FragmentActivity implements SensorEventListe
     boolean mFirst = true;
 
     public static int NUMBER_OF_ATTRIBUTES = 13;
+    public static int NUMBER_OF_ATTRIBUTES_WITHOUT_CLASS = 12;
     // 20,000 microseconds = 50Hz
     private final int dt = 20000;
     private final int NUMBER_OF_READINGS = 150;
@@ -161,6 +167,11 @@ public class SensorActivity extends FragmentActivity implements SensorEventListe
         createTrainingSet();
     }
 
+    private void initData() {
+        Log.d(TAG,"initData");
+        activityList = new ArrayList<>();
+    }
+
     private void initRecyclerView() {
         Log.d(TAG,"initRecyclerView");
         recyclerView = findViewById(R.id.recyclerView);
@@ -172,21 +183,13 @@ public class SensorActivity extends FragmentActivity implements SensorEventListe
         adapter.notifyDataSetChanged();
     }
 
-    private void initData() {
-        Log.d(TAG,"initData");
-        activityList = new ArrayList<>();
-        activityList.add(new Model(R.drawable.biking, "biking", "17:00 pm", "_______________________________________"));
-        activityList.add(new Model(R.drawable.biking, "biking", "17:00 pm", "_______________________________________"));
-        activityList.add(new Model(R.drawable.biking, "biking", "17:00 pm", "_______________________________________"));
-        activityList.add(new Model(R.drawable.biking, "biking", "17:00 pm", "_______________________________________"));
-
-    }
-
     public void initiateReadings(){
+        if (running) {
             readings = new HashMap<>();
             for (int i = 0; i < 7; i++) {
                 readings.put(i, 0);
             }
+        }
     }
 
     @Override
@@ -196,6 +199,7 @@ public class SensorActivity extends FragmentActivity implements SensorEventListe
        if (view.equals(activities) && atHomeScreen){
            introText.setText("You are");
            atHomeScreen = false;
+           createTrainingSet();
            initiateReadings();
            running = true;
 
@@ -272,6 +276,7 @@ public class SensorActivity extends FragmentActivity implements SensorEventListe
             default:
                 System.out.println("No activity has been recorded");
         }
+
     }
 
 
@@ -391,7 +396,40 @@ public class SensorActivity extends FragmentActivity implements SensorEventListe
                 Log.d(TAG, "The new oldPredictionActivity variable - " + oldPredictionActivity);
                 ChangePictureAndSound();
                 introText.setText("You are most likely " + activity[prediction]);
-                Log.d(TAG, "You are most likely " + activity[prediction]);
+
+                SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
+                Date date = new Date();
+
+                String current_time = formatter.format(date);
+
+                switch(oldPredictionActivity)
+                {
+                    case "walking":
+                        activityList.add(new Model(R.drawable.walking, current_state,current_time , "_______________________________________"));
+                        break;
+                    case "standing":
+                        activityList.add(new Model(R.drawable.standing, current_state,current_time , "_______________________________________"));
+                        break;
+                    case "jogging":
+                        activityList.add(new Model(R.drawable.jogging, current_state,current_time , "_______________________________________"));
+                        break;
+                    case "sitting":
+                        activityList.add(new Model(R.drawable.sitting, current_state,current_time , "_______________________________________"));
+                        break;
+                    case "biking":
+                        activityList.add(new Model(R.drawable.biking, current_state,current_time , "_______________________________________"));
+                        break;
+                    case "upstairs":
+                        activityList.add(new Model(R.drawable.upstairs, current_state,current_time , "_______________________________________"));
+                        break;
+                    case "downstairs":
+                        activityList.add(new Model(R.drawable.downstairs, current_state,current_time , "_______________________________________"));
+                        break;
+                    default:
+                        activityList.add(new Model(R.drawable.standing, "standing",current_time , "_______________________________________"));
+                }
+
+
             }
             readings.clear();
         }
@@ -404,6 +442,8 @@ public class SensorActivity extends FragmentActivity implements SensorEventListe
 
 
     public void createTrainingSet(){
+
+        if (running) {
 
             Log.d(TAG, "Created training set...");
             // Create the attributes
@@ -443,6 +483,7 @@ public class SensorActivity extends FragmentActivity implements SensorEventListe
             fvWekaAttributes.add(Wrist_My);
             fvWekaAttributes.add(Wrist_Mz);
             fvWekaAttributes.add(Activity);
+        }
     }
     public void classifyInstance(){
         int prediction = 0;

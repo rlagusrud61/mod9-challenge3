@@ -51,10 +51,11 @@
                 android:src="@drawable/play"/>
 
             <androidx.recyclerview.widget.RecyclerView
-                android:layout_width="match_parent"
-                android:layout_height="250dp"
-                android:visibility="visible"
-                android:id="@+id/recyclerView" >
+                android:layout_width="400dp"
+                android:layout_height="570dp"
+                android:visibility="gone"
+                android:background="#ffffff"
+                android:id="@+id/recyclerView">
             </androidx.recyclerview.widget.RecyclerView>
 
         <RelativeLayout
@@ -85,5 +86,7 @@
 
         </RelativeLayout>
         </LinearLayout>
+
     </LinearLayout>
+
 </LinearLayout>
