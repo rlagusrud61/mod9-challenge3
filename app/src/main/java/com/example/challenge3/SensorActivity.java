@@ -48,7 +48,6 @@ public class SensorActivity extends FragmentActivity implements SensorEventListe
     // Front-End components
     TextView introText;
     ImageButton activities, history;
-    ListView listView;
 
     //History
     boolean inHistory = false;
@@ -83,6 +82,7 @@ public class SensorActivity extends FragmentActivity implements SensorEventListe
     boolean gyroUpdated = false;
     boolean linearaccUpdated = false;
     boolean magnetoUpdated = false;
+    boolean running = true;
 
     Instances instances;
     Instance instance;
@@ -112,8 +112,6 @@ public class SensorActivity extends FragmentActivity implements SensorEventListe
     Adapter adapter;
 
 
-
-
     @Override
     public final void onCreate(Bundle savedInstanceState) {
 
@@ -124,8 +122,6 @@ public class SensorActivity extends FragmentActivity implements SensorEventListe
         introText = findViewById(R.id.introText);
         activities = findViewById(R.id.activities);
         history = findViewById(R.id.history);
-        listView = findViewById(R.id.listView);
-        //linearLayout = findViewById(R.id.linearLayout);
         activities.setOnClickListener(this);
         history.setOnClickListener(this);
 
@@ -136,9 +132,6 @@ public class SensorActivity extends FragmentActivity implements SensorEventListe
         sitting = MediaPlayer.create(this,R.raw.sitting);
         standing = MediaPlayer.create(this,R.raw.standing);
         walking = MediaPlayer.create(this,R.raw.walking);
-
-        String[] events = {"Jogging","Jogging","Walking","Going up the stairs","Sitting","Walking","Standing"};
-        String[] times = {"8:45 pm","9:00 am","7:34 pm","6:32 am","5:76 am","5:00 am","7:34 pm"};
 
         // Recycler View
         initData();
@@ -155,26 +148,10 @@ public class SensorActivity extends FragmentActivity implements SensorEventListe
         linear_acceleration = sensorManager.getDefaultSensor(Sensor.TYPE_LINEAR_ACCELERATION);
         magnetometer = sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
 
-        sensorManager.registerListener((SensorEventListener) SensorActivity.this, accelerometer, dt);
-        sensorManager.registerListener((SensorEventListener) SensorActivity.this, gyroscope, dt);
-        sensorManager.registerListener((SensorEventListener) SensorActivity.this, linear_acceleration, dt);
-        sensorManager.registerListener((SensorEventListener) SensorActivity.this, magnetometer, dt);
-
-        createTrainingSet();
-        initiateReadings();
-
-        instances = new Instances("Bruh", fvWekaAttributes, 5);
-        instances.setClassIndex(NUMBER_OF_ATTRIBUTES-1);
-        try {
-            cls = (Classifier) weka.core.SerializationHelper.read(getAssets().open("j48LefPocket.model"));
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-
     }
 
     private void initRecyclerView() {
+        Log.d(TAG,"initRecyclerView");
         recyclerView = findViewById(R.id.recyclerView);
         linearLayoutManager = new LinearLayoutManager(this);
         linearLayoutManager.setOrientation(RecyclerView.VERTICAL);
@@ -185,6 +162,7 @@ public class SensorActivity extends FragmentActivity implements SensorEventListe
     }
 
     private void initData() {
+        Log.d(TAG,"initData");
         activityList = new ArrayList<>();
         activityList.add(new Model(R.drawable.biking, "biking", "17:00 pm", "_______________________________________"));
         activityList.add(new Model(R.drawable.biking, "biking", "17:00 pm", "_______________________________________"));
@@ -194,9 +172,11 @@ public class SensorActivity extends FragmentActivity implements SensorEventListe
     }
 
     public void initiateReadings(){
-        readings = new HashMap<>();
-        for (int i = 0 ; i < 7 ; i ++){
-            readings.put(i, 0);
+        if (running) {
+            readings = new HashMap<>();
+            for (int i = 0; i < 7; i++) {
+                readings.put(i, 0);
+            }
         }
     }
 
@@ -207,6 +187,23 @@ public class SensorActivity extends FragmentActivity implements SensorEventListe
        if (view.equals(activities) && atHomeScreen){
            introText.setText("You are");
            atHomeScreen = false;
+           createTrainingSet();
+           initiateReadings();
+           running = true;
+
+           instances = new Instances("Bruh", fvWekaAttributes, 5);
+           instances.setClassIndex(NUMBER_OF_ATTRIBUTES-1);
+           try {
+               cls = (Classifier) weka.core.SerializationHelper.read(getAssets().open("j48LefPocket.model"));
+           } catch (Exception e) {
+               e.printStackTrace();
+           }
+
+           sensorManager.registerListener((SensorEventListener) SensorActivity.this, accelerometer, dt);
+           sensorManager.registerListener((SensorEventListener) SensorActivity.this, gyroscope, dt);
+           sensorManager.registerListener((SensorEventListener) SensorActivity.this, linear_acceleration, dt);
+           sensorManager.registerListener((SensorEventListener) SensorActivity.this, magnetometer, dt);
+
        }
 
        if (view.equals(history)){
@@ -222,6 +219,7 @@ public class SensorActivity extends FragmentActivity implements SensorEventListe
                atHomeScreen = true;
 
            } else {
+               running = false;
                inHistory = true;
                activities.setVisibility(View.GONE);
                introText.setVisibility(View.GONE);
@@ -270,88 +268,85 @@ public class SensorActivity extends FragmentActivity implements SensorEventListe
     }
 
 
-
     @Override
     public final void onSensorChanged(SensorEvent event) {
 
-        // Getting the accelerometer values
-        if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
-            if(aFirst){
-                Ax = lowPass(event.values[0],0,RC,dt,true);
-                Ay = lowPass(event.values[1],0,RC,dt,true);
-                Az = lowPass(event.values[2],0,RC,dt,true);
-                aFirst = false;
+        if (running) {
+            // Getting the accelerometer values
+            if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
+                if (aFirst) {
+                    Ax = lowPass(event.values[0], 0, RC, dt, true);
+                    Ay = lowPass(event.values[1], 0, RC, dt, true);
+                    Az = lowPass(event.values[2], 0, RC, dt, true);
+                    aFirst = false;
+
+                } else {
+                    float x = event.values[0];
+                    Ax = lowPass(event.values[0], Ax, RC, dt, false);
+                    Ay = lowPass(event.values[1], Ay, RC, dt, false);
+                    Az = lowPass(event.values[2], Az, RC, dt, false);
+                    //Log.d("filter", "x: "+ x + " y: " + Ax);
+                }
+                accUpdated = true;
 
             }
-            else{
-                float x = event.values[0];
-                Ax = lowPass(event.values[0],Ax,RC,dt, false);
-                Ay = lowPass(event.values[1],Ay,RC,dt,false);
-                Az = lowPass(event.values[2],Az,RC,dt,false);
-                //Log.d("filter", "x: "+ x + " y: " + Ax);
-            }
-        accUpdated = true;
 
+            // Getting the gyroscope values
+            if (event.sensor.getType() == Sensor.TYPE_GYROSCOPE) {
+                if (gFirst) {
+                    Gx = lowPass(event.values[0], 0, RC, dt, true);
+                    Gy = lowPass(event.values[1], 0, RC, dt, true);
+                    Gz = lowPass(event.values[2], 0, RC, dt, true);
+                    gFirst = false;
+                } else {
+                    Gx = lowPass(event.values[0], Gx, RC, dt, false);
+                    Gy = lowPass(event.values[1], Gy, RC, dt, false);
+                    Gz = lowPass(event.values[2], Gz, RC, dt, false);
+                }
+                gyroUpdated = true;
+            }
+
+            // Getting the linear acceleration values
+            if (event.sensor.getType() == Sensor.TYPE_LINEAR_ACCELERATION) {
+                if (lFirst) {
+                    Lx = lowPass(event.values[0], 0, RC, dt, true);
+                    Ly = lowPass(event.values[1], 0, RC, dt, true);
+                    Lz = lowPass(event.values[2], 0, RC, dt, true);
+                    lFirst = false;
+                } else {
+                    Lx = lowPass(event.values[0], Lx, RC, dt, false);
+                    Ly = lowPass(event.values[1], Ly, RC, dt, false);
+                    Lz = lowPass(event.values[2], Lz, RC, dt, false);
+                }
+                linearaccUpdated = true;
+            }
+
+            // Getting the magnetometer values
+            if (event.sensor.getType() == Sensor.TYPE_MAGNETIC_FIELD) {
+                if (mFirst) {
+                    Mx = lowPass(event.values[0], 0, RC, dt, true);
+                    My = lowPass(event.values[1], 0, RC, dt, true);
+                    Mz = lowPass(event.values[2], 0, RC, dt, true);
+                    mFirst = false;
+                    //Log.d("filter", "first time m: " + Mz + " original: " + event.values[2]);
+                } else {
+                    Mx = lowPass(event.values[0], Mx, RC, dt, false);
+                    My = lowPass(event.values[1], My, RC, dt, false);
+                    Mz = lowPass(event.values[2], Mz, RC, dt, false);
+                    //Log.d("filter", "m: " + Mz + " original: " + event.values[2]);
+                }
+                magnetoUpdated = true;
+            }
+
+            if (accUpdated && magnetoUpdated && linearaccUpdated && gyroUpdated) {
+                classifyInstance();
+                accUpdated = false;
+                magnetoUpdated = false;
+                linearaccUpdated = false;
+                gyroUpdated = false;
+            }
+            getPredictedActivity();
         }
-
-        // Getting the gyroscope values
-        if (event.sensor.getType() == Sensor.TYPE_GYROSCOPE) {
-            if(gFirst){
-                Gx = lowPass(event.values[0],0,RC,dt,true);
-                Gy = lowPass(event.values[1],0,RC,dt,true);
-                Gz = lowPass(event.values[2],0,RC,dt,true);
-                gFirst = false;
-            }
-            else{
-                Gx = lowPass(event.values[0],Gx,RC,dt, false);
-                Gy = lowPass(event.values[1],Gy,RC,dt,false);
-                Gz = lowPass(event.values[2],Gz,RC,dt,false);
-            }
-            gyroUpdated = true;
-        }
-
-        // Getting the linear acceleration values
-        if (event.sensor.getType() == Sensor.TYPE_LINEAR_ACCELERATION) {
-            if(lFirst){
-                Lx = lowPass(event.values[0],0,RC,dt,true);
-                Ly = lowPass(event.values[1],0,RC,dt,true);
-                Lz = lowPass(event.values[2],0,RC,dt,true);
-                lFirst = false;
-            }
-            else{
-                Lx = lowPass(event.values[0],Lx,RC,dt, false);
-                Ly = lowPass(event.values[1],Ly,RC,dt,false);
-                Lz = lowPass(event.values[2],Lz,RC,dt,false);
-            }
-            linearaccUpdated = true;
-        }
-
-        // Getting the magnetometer values
-        if (event.sensor.getType() == Sensor.TYPE_MAGNETIC_FIELD) {
-            if(mFirst){
-                Mx = lowPass(event.values[0],0,RC,dt,true);
-                My = lowPass(event.values[1],0,RC,dt,true);
-                Mz = lowPass(event.values[2],0,RC,dt,true);
-                mFirst = false;
-                //Log.d("filter", "first time m: " + Mz + " original: " + event.values[2]);
-            }
-            else{
-                Mx = lowPass(event.values[0],Mx,RC,dt, false);
-                My = lowPass(event.values[1],My,RC,dt,false);
-                Mz = lowPass(event.values[2],Mz,RC,dt,false);
-                //Log.d("filter", "m: " + Mz + " original: " + event.values[2]);
-            }
-            magnetoUpdated = true;
-        }
-
-        if (accUpdated && magnetoUpdated && linearaccUpdated && gyroUpdated){
-            classifyInstance();
-            accUpdated = false;
-            magnetoUpdated = false;
-            linearaccUpdated = false;
-            gyroUpdated = false;
-        }
-        getPredictedActivity();
 }
 
 
@@ -397,46 +392,47 @@ public class SensorActivity extends FragmentActivity implements SensorEventListe
 
     public void createTrainingSet(){
 
-        Log.d(TAG, "Created training set...");
-        // Create the attributes
-        Attribute Wrist_Ax = new Attribute("Wrist_Ax");
-        Attribute Wrist_Ay = new Attribute("Wrist_Ay");
-        Attribute Wrist_Az = new Attribute("Wrist_Az");
-        Attribute Wrist_Lx = new Attribute("Wrist_Lx");
-        Attribute Wrist_Ly = new Attribute("Wrist_Ly");
-        Attribute Wrist_Lz = new Attribute("Wrist_Lz");
-        Attribute Wrist_Gx = new Attribute("Wrist_Gx");
-        Attribute Wrist_Gy = new Attribute("Wrist_Gy");
-        Attribute Wrist_Gz = new Attribute("Wrist_Gz");
-        Attribute Wrist_Mx = new Attribute("Wrist_Mx");
-        Attribute Wrist_My = new Attribute("Wrist_My");
-        Attribute Wrist_Mz = new Attribute("Wrist_Mz");
+        if (running) {
 
-        ArrayList<String> acList = new ArrayList<>();
-        for(int i=0; i<activity.length; i++) {
-            acList.add(activity[i]);
+            Log.d(TAG, "Created training set...");
+            // Create the attributes
+            Attribute Wrist_Ax = new Attribute("Wrist_Ax");
+            Attribute Wrist_Ay = new Attribute("Wrist_Ay");
+            Attribute Wrist_Az = new Attribute("Wrist_Az");
+            Attribute Wrist_Lx = new Attribute("Wrist_Lx");
+            Attribute Wrist_Ly = new Attribute("Wrist_Ly");
+            Attribute Wrist_Lz = new Attribute("Wrist_Lz");
+            Attribute Wrist_Gx = new Attribute("Wrist_Gx");
+            Attribute Wrist_Gy = new Attribute("Wrist_Gy");
+            Attribute Wrist_Gz = new Attribute("Wrist_Gz");
+            Attribute Wrist_Mx = new Attribute("Wrist_Mx");
+            Attribute Wrist_My = new Attribute("Wrist_My");
+            Attribute Wrist_Mz = new Attribute("Wrist_Mz");
+
+            ArrayList<String> acList = new ArrayList<>();
+            for (int i = 0; i < activity.length; i++) {
+                acList.add(activity[i]);
+            }
+            Attribute Activity = new Attribute("Activity", acList);
+
+            // Creating a vector with 13 positions.
+            fvWekaAttributes = new ArrayList<>(NUMBER_OF_ATTRIBUTES);
+
+            // For each position, we add an attribute
+            fvWekaAttributes.add(Wrist_Ax);
+            fvWekaAttributes.add(Wrist_Ay);
+            fvWekaAttributes.add(Wrist_Az);
+            fvWekaAttributes.add(Wrist_Lx);
+            fvWekaAttributes.add(Wrist_Ly);
+            fvWekaAttributes.add(Wrist_Lz);
+            fvWekaAttributes.add(Wrist_Gx);
+            fvWekaAttributes.add(Wrist_Gy);
+            fvWekaAttributes.add(Wrist_Gz);
+            fvWekaAttributes.add(Wrist_Mx);
+            fvWekaAttributes.add(Wrist_My);
+            fvWekaAttributes.add(Wrist_Mz);
+            fvWekaAttributes.add(Activity);
         }
-        Attribute Activity = new Attribute("Activity",acList);
-
-        // Creating a vector with 13 positions.
-        fvWekaAttributes = new ArrayList<>(NUMBER_OF_ATTRIBUTES);
-
-        // For each position, we add an attribute
-        fvWekaAttributes.add(Wrist_Ax);
-        fvWekaAttributes.add(Wrist_Ay);
-        fvWekaAttributes.add(Wrist_Az);
-        fvWekaAttributes.add(Wrist_Lx);
-        fvWekaAttributes.add(Wrist_Ly);
-        fvWekaAttributes.add(Wrist_Lz);
-        fvWekaAttributes.add(Wrist_Gx);
-        fvWekaAttributes.add(Wrist_Gy);
-        fvWekaAttributes.add(Wrist_Gz);
-        fvWekaAttributes.add(Wrist_Mx);
-        fvWekaAttributes.add(Wrist_My);
-        fvWekaAttributes.add(Wrist_Mz);
-        fvWekaAttributes.add(Activity);
-
-
     }
     public void classifyInstance(){
         int prediction = 0;
@@ -473,6 +469,5 @@ public class SensorActivity extends FragmentActivity implements SensorEventListe
             e.printStackTrace();
         }
     }
-
 
 };
