@@ -197,9 +197,9 @@ public class SensorActivity extends FragmentActivity implements SensorEventListe
 
         // When this button gets clicked, you will move into the history tab
        if (view.equals(activities) && atHomeScreen){
-           introText.setText("You are");
+           Log.d(TAG,"has enetered onClick");
+           introText.setText("You are most likely ...");
            atHomeScreen = false;
-           createTrainingSet();
            initiateReadings();
            running = true;
 
